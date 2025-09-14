@@ -9,26 +9,27 @@ builder.Services
     .AddGatewayCore(builder.Configuration)
     .AddGatewayRouting(builder.Configuration);
 
-// Add other services
+// Add API Explorer services (required for Swagger)
+builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddEndpoints(typeof(Program).Assembly);
 
 var app = builder.Build();
 
-// Add modules middlewares
-app
-    .UseGatewayCore()
-    .UseGatewayRouting();
-
 app.UseHttpsRedirection();
-
-app.MapEndpoints();
 
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.MapEndpoints();
+
+// Add modules middlewares
+app
+    .UseGatewayCore()
+    .UseGatewayRouting();
 
 app.Run();
 
