@@ -26,7 +26,7 @@ AuthZN is out of scope.
 src/
 ├── Gateway.Api/                          # Main API project
 ├── Gateway.Core/                         # Core abstractions and models
-├── Gateway.Routing/                      # Path-based routing module
+├── Gateway.ServiceRouting/               # Path-based routing module
 ├── Gateway.RateLimiting/                 # Rate limiting module
 ├── Gateway.LoadBalancing/                # Load balancing strategies
 ├── Gateway.CircuitBreaker/               # Circuit breaker pattern
@@ -53,7 +53,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add modules
 builder.Services
     .AddGatewayCore()
-    .AddRouting()
+    .AddServiceRouting()
     .AddRateLimiting()
     .AddLoadBalancing()
     .AddCircuitBreaker()

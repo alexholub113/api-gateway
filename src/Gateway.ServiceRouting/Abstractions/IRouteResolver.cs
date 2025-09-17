@@ -1,6 +1,6 @@
 using Gateway.Core.Abstractions;
 
-namespace Gateway.Routing.Abstractions;
+namespace Gateway.ServiceRouting.Abstractions;
 
 /// <summary>
 /// Service responsible for resolving routes based on incoming requests

@@ -1,20 +1,20 @@
 using Gateway.Core.Abstractions;
 using Gateway.Core.Configuration;
-using Gateway.Routing.Abstractions;
-using Gateway.Routing.Configuration;
+using Gateway.ServiceRouting.Abstractions;
+using Gateway.ServiceRouting.Configuration;
 using Microsoft.Extensions.Options;
 using System.Text.RegularExpressions;
 
-namespace Gateway.Routing.Services;
+namespace Gateway.ServiceRouting.Services;
 
 /// <summary>
 /// Default implementation of route resolver
 /// </summary>
-internal class RouteResolver(
-    IOptionsMonitor<RoutingOptions> routingOptions,
+internal class ServiceRouteResolver(
+    IOptionsMonitor<ServiceRoutingOptions> routingOptions,
     IOptionsMonitor<ServicesOptions> servicesOptions) : IRouteResolver
 {
-    private readonly RoutingOptions _routingOptions = routingOptions.CurrentValue;
+    private readonly ServiceRoutingOptions _routingOptions = routingOptions.CurrentValue;
     private readonly ServicesOptions _servicesOptions = servicesOptions.CurrentValue;
 
     public Result<RouteMatch> ResolveRoute(string path, string method)
@@ -49,7 +49,7 @@ internal class RouteResolver(
 
     private static bool IsMethodMatch(string[] routeMethods, string requestMethod)
     {
-        return routeMethods.Length == 0 || 
+        return routeMethods.Length == 0 ||
                routeMethods.Contains(requestMethod, StringComparer.OrdinalIgnoreCase);
     }
 

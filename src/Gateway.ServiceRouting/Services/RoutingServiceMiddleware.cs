@@ -1,13 +1,13 @@
 using Gateway.Core.Extensions;
-using Gateway.Routing.Abstractions;
+using Gateway.ServiceRouting.Abstractions;
 using Microsoft.AspNetCore.Http;
 
-namespace Gateway.Routing.Services;
+namespace Gateway.ServiceRouting.Services;
 
 /// <summary>
 /// Middleware that resolves routes for incoming requests
 /// </summary>
-internal class RoutingMiddleware(RequestDelegate next, IRouteResolver routeResolver)
+internal class RoutingServiceMiddleware(RequestDelegate next, IRouteResolver routeResolver)
 {
     public async Task InvokeAsync(HttpContext context)
     {

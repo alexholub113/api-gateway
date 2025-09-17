@@ -1,19 +1,19 @@
-namespace Gateway.Routing.Configuration;
+namespace Gateway.ServiceRouting.Configuration;
 
 /// <summary>
 /// Configuration options for routing
 /// </summary>
-internal class RoutingOptions
+internal class ServiceRoutingOptions
 {
-    public const string SectionName = "Routing";
+    public const string SectionName = "ServiceRouting";
 
-    public List<RouteConfiguration> Routes { get; set; } = new();
+    public List<ServiceRouteConfiguration> Routes { get; set; } = new();
 }
 
 /// <summary>
 /// Configuration for a specific route
 /// </summary>
-internal record RouteConfiguration(
+internal record ServiceRouteConfiguration(
     string Id,
     string Path,
     string[] Methods,
