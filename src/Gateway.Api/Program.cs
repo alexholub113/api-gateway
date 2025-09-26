@@ -1,5 +1,7 @@
 using Gateway.Core.Extensions;
 using Gateway.ServiceRouting.Extensions;
+using Gateway.Proxy.Extensions;
+using Gateway.LoadBalancing.Extensions;
 using MinimalEndpoints.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,7 +9,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add modules services
 builder.Services
     .AddGatewayCore(builder.Configuration)
-    .AddGatewayServiceRouting(builder.Configuration);
+    .AddGatewayServiceRouting(builder.Configuration)
+    .AddGatewayProxy(builder.Configuration)
+    .AddLoadBalancing();
 
 // Add API Explorer services (required for Swagger)
 builder.Services.AddEndpointsApiExplorer();
@@ -29,7 +33,9 @@ app.MapEndpoints();
 // Add modules middlewares
 app
     .UseGatewayCore()
-    .UseGatewayServiceRouting();
+    .UseGatewayServiceRouting()
+    .UseLoadBalancing()
+    .UseGatewayProxy();
 
 app.Run();
 

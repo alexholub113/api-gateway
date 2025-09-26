@@ -5,6 +5,5 @@ namespace Gateway.Core.Abstractions;
 /// </summary>
 public record ServiceInstance(
     string Url,
-    int Weight = 1,
-    bool IsHealthy = true
+    int Weight = 1
 );

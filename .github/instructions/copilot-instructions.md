@@ -4,10 +4,12 @@ The gateway will have bunch of the functions, but the key-feature is distributed
 AuthZN is out of scope.
 
 # Cases.
+
 1. Service A -> API Gateway -> ServiceB
 2. Service A -> API Gateway -> AuthZN Service -> ServiceB
 
 # Functional requirements:
+
 - basic routing to the target services (origins) by path.
 - rate limitting
 - load balancing
@@ -21,26 +23,28 @@ AuthZN is out of scope.
 - configuration via appsettings.json
 - if target service is down, return 503 with message "Service Unavailable"
 
-
 # Proposed Application Structure:
+
 src/
-├── Gateway.Api/                          # Main API project
-├── Gateway.Core/                         # Core abstractions and models
-├── Gateway.ServiceRouting/               # Path-based routing module
-├── Gateway.RateLimiting/                 # Rate limiting module
-├── Gateway.LoadBalancing/                # Load balancing strategies
-├── Gateway.CircuitBreaker/               # Circuit breaker pattern
-├── Gateway.Authentication/               # AuthZN integration
-├── Gateway.Caching/                      # Response caching
-├── Gateway.Logging/                      # Request/response logging
-├── Gateway.Metrics/                      # Metrics collection
-├── Gateway.HealthChecks/                 # Health monitoring
-└── Gateway.Proxy/                        # HTTP proxy functionality
+├── Gateway.Api/ # Main API project
+├── Gateway.Core/ # Core abstractions and models
+├── Gateway.ServiceRouting/ # Path-based routing module
+├── Gateway.RateLimiting/ # Rate limiting module
+├── Gateway.LoadBalancing/ # Load balancing strategies
+├── Gateway.CircuitBreaker/ # Circuit breaker pattern
+├── Gateway.Authentication/ # AuthZN integration
+├── Gateway.Caching/ # Response caching
+├── Gateway.Logging/ # Request/response logging
+├── Gateway.Metrics/ # Metrics collection
+├── Gateway.HealthChecks/ # Health monitoring
+└── Gateway.Proxy/ # HTTP proxy functionality
 
 # Module structure:
+
 ## Example:
+
 Gateway.XXX/
-├── Abstractions/ (public API, if any)
+├── Abstractions/ (public API only, if any)
 ├── Configuration/
 ├── Services/ (Internal implementation, services, middleware, etc., if any)
 ├── Extensions/ (Public registration methods)
@@ -48,43 +52,45 @@ Gateway.XXX/
 └── Gateway.XXX.csproj
 
 # Integration with Gateway.Api:
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add modules
 builder.Services
-    .AddGatewayCore()
-    .AddServiceRouting()
-    .AddRateLimiting()
-    .AddLoadBalancing()
-    .AddCircuitBreaker()
-    .AddAuthentication()
-    .AddCaching()
-    .AddLogging()
-    .AddMetrics()
-    .AddHealthChecks()
-    .AddProxy();
+.AddGatewayCore()
+.AddServiceRouting()
+.AddRateLimiting()
+.AddLoadBalancing()
+.AddCircuitBreaker()
+.AddAuthentication()
+.AddCaching()
+.AddLogging()
+.AddMetrics()
+.AddHealthChecks()
+.AddProxy();
 
 var app = builder.Build();
 
 // Use middlewares
 Just an example:
 app.UseRateLimiting()
-   .UseCircuitBreaker()
-   .UseAuthentication()
-   .UseCaching()
-   .UseLoadBalancing()
-   .UseProxy();
+.UseCircuitBreaker()
+.UseAuthentication()
+.UseCaching()
+.UseLoadBalancing()
+.UseProxy();
 
 # Shared context for communication between modules:
+
 public interface IGatewayContext
 {
-    ...
+...
 }
 
 public static class HttpContextExtensions
 {
-    private const string GatewayContextKey = "Gateway.Context";
-    
+private const string GatewayContextKey = "Gateway.Context";
+
     public static IGatewayContext GetGatewayContext(this HttpContext context)
     {
         if (!context.Items.TryGetValue(GatewayContextKey, out var ctx))
@@ -94,14 +100,17 @@ public static class HttpContextExtensions
         }
         return (IGatewayContext)ctx;
     }
+
 }
 
 # Error handling strategy:
+
 - Global exception handling middleware to catch unhandled exceptions.
 - Use Result<T> pattern for expected errors.
 - Standard HTTP status codes
 
 # Rules
+
 - create seperate file for each class or interface (except request and response models in endpoints).
 - let user create projects (.csproj) by himself manually.
 - use primary constructors.
@@ -109,3 +118,5 @@ public static class HttpContextExtensions
 - if user ask question be short and to the point, assume user can be wrong, let's brainshtorm problem together.
 - if new member (method,property,etc) is not used then it should be removed.
 - if configuration/module is used by multiple modules/projects then create it in Core or common project, otherwise create it in the specific module/project.
+- services can be without interfaces, add interface only if it makes sense.
+- prefer Singletons over Scoped, Transients.

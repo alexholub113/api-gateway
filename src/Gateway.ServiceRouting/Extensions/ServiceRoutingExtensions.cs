@@ -30,6 +30,6 @@ public static class ServiceRoutingExtensions
     /// </summary>
     public static IApplicationBuilder UseGatewayServiceRouting(this IApplicationBuilder app)
     {
-        return app.UseMiddleware<RoutingServiceMiddleware>();
+        return app.UseMiddleware<ServiceRoutingMiddleware>();
     }
 }

@@ -3,61 +3,69 @@ using Gateway.Core.Configuration;
 using Gateway.ServiceRouting.Abstractions;
 using Gateway.ServiceRouting.Configuration;
 using Microsoft.Extensions.Options;
-using System.Text.RegularExpressions;
 
 namespace Gateway.ServiceRouting.Services;
 
 /// <summary>
-/// Default implementation of route resolver
+/// Default implementation of route resolver with dynamic service routing
 /// </summary>
 internal class ServiceRouteResolver(
     IOptionsMonitor<ServiceRoutingOptions> routingOptions,
     IOptionsMonitor<ServicesOptions> servicesOptions) : IRouteResolver
 {
-    private readonly ServiceRoutingOptions _routingOptions = routingOptions.CurrentValue;
-    private readonly ServicesOptions _servicesOptions = servicesOptions.CurrentValue;
-
     public Result<RouteMatch> ResolveRoute(string path, string method)
     {
-        foreach (var route in _routingOptions.Routes)
-        {
-            if (!IsMethodMatch(route.Methods, method))
-                continue;
+        var currentRoutingOptions = routingOptions.CurrentValue;
+        var currentServicesOptions = servicesOptions.CurrentValue;
+        // Check if path matches the dynamic routing pattern: /{RoutePrefix}/{serviceId}/**
+        var routePrefix = currentRoutingOptions.RoutePrefix.Trim('/');
+        var expectedPrefix = $"/{routePrefix}/";
 
-            if (!IsPathMatch(route.Path, path))
-                continue;
+        if (!path.StartsWith(expectedPrefix, StringComparison.OrdinalIgnoreCase))
+            return Result<RouteMatch>.Failure($"Path does not start with expected routing prefix '/{routePrefix}/'");
 
-            var service = _servicesOptions.Services.FirstOrDefault(s => s.Name == route.TargetService);
-            if (service == null)
-                return Result<RouteMatch>.Failure($"Service '{route.TargetService}' not found");
+        // Extract service ID from path: /route/{serviceId}/remaining/path
+        var pathAfterPrefix = path[expectedPrefix.Length..];
+        var segments = pathAfterPrefix.Split('/', StringSplitOptions.RemoveEmptyEntries);
 
-            var routeMatch = new RouteMatch(
-                RouteId: route.Id,
-                Pattern: route.Path,
-                TargetServiceName: route.TargetService,
-                AuthPolicy: route.AuthPolicy,
-                RateLimitPolicy: route.RateLimitPolicy,
-                CachePolicy: route.CachePolicy,
-                LoadBalancingStrategy: route.LoadBalancingStrategy,
-                Timeout: route.Timeout
-            );
-            return Result<RouteMatch>.Success(routeMatch);
-        }
+        if (segments.Length == 0)
+            return Result<RouteMatch>.Failure("No service ID found in path");
 
-        return Result<RouteMatch>.Failure("No matching route found");
+        var serviceId = segments[0];
+
+        // Find matching route configuration
+        var routeConfig = currentRoutingOptions.Routes.FirstOrDefault(r =>
+            r.ServiceId.Equals(serviceId, StringComparison.OrdinalIgnoreCase));
+
+        if (routeConfig == null)
+            return Result<RouteMatch>.Failure($"No route configuration found for service ID '{serviceId}'");
+
+        // Check if method is allowed
+        if (!IsMethodMatch(routeConfig.Methods, method))
+            return Result<RouteMatch>.Failure($"Method '{method}' not allowed for service '{serviceId}'");
+
+        // Verify target service exists
+        var service = currentServicesOptions.Services.FirstOrDefault(s => s.Name == routeConfig.TargetService);
+        if (service == null)
+            return Result<RouteMatch>.Failure($"Target service '{routeConfig.TargetService}' not found");
+
+        var routeMatch = new RouteMatch(
+            RouteId: routeConfig.ServiceId,
+            Pattern: $"/{routePrefix}/{routeConfig.ServiceId}/*",
+            TargetServiceName: routeConfig.TargetService,
+            AuthPolicy: routeConfig.AuthPolicy,
+            RateLimitPolicy: routeConfig.RateLimitPolicy,
+            CachePolicy: routeConfig.CachePolicy,
+            LoadBalancingStrategy: routeConfig.LoadBalancingStrategy,
+            Timeout: routeConfig.Timeout
+        );
+
+        return Result<RouteMatch>.Success(routeMatch);
     }
 
     private static bool IsMethodMatch(string[] routeMethods, string requestMethod)
     {
         return routeMethods.Length == 0 ||
                routeMethods.Contains(requestMethod, StringComparer.OrdinalIgnoreCase);
-    }
-
-    private static bool IsPathMatch(string routePattern, string requestPath)
-    {
-        // Convert simple wildcard pattern to regex
-        // /api/users/* becomes ^/api/users/.*$
-        var regexPattern = "^" + Regex.Escape(routePattern).Replace("\\*", ".*") + "$";
-        return Regex.IsMatch(requestPath, regexPattern, RegexOptions.IgnoreCase);
     }
 }

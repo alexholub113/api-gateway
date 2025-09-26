@@ -7,7 +7,7 @@ namespace Gateway.ServiceRouting.Services;
 /// <summary>
 /// Middleware that resolves routes for incoming requests
 /// </summary>
-internal class RoutingServiceMiddleware(RequestDelegate next, IRouteResolver routeResolver)
+internal class ServiceRoutingMiddleware(RequestDelegate next, IRouteResolver routeResolver)
 {
     public async Task InvokeAsync(HttpContext context)
     {
