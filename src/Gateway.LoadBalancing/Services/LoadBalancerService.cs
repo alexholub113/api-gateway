@@ -22,7 +22,7 @@ internal class LoadBalancerService(
     {
         var currentServicesOptions = servicesOptions.CurrentValue;
         var service = currentServicesOptions.Services.FirstOrDefault(s => s.Name == serviceName);
-        
+
         if (service == null)
             return Result<ServiceInstance>.Failure($"Service '{serviceName}' not found");
 
@@ -35,7 +35,7 @@ internal class LoadBalancerService(
         {
             // Fallback to all instances if no healthy ones (fail-open strategy)
             healthyInstances = service.Instances.ToList();
-            
+
             if (healthyInstances.Count == 0)
                 return Result<ServiceInstance>.Failure($"No instances available for service '{serviceName}'");
         }

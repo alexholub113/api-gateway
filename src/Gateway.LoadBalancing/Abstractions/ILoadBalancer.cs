@@ -14,7 +14,7 @@ internal interface ILoadBalancer
     /// <param name="strategy">Load balancing strategy to use</param>
     /// <returns>Selected service instance or failure if no healthy instances available</returns>
     Result<ServiceInstance> SelectInstance(string serviceName, string strategy = "RoundRobin");
-    
+
     /// <summary>
     /// Async version of SelectInstance for better async/await patterns
     /// </summary>
@@ -30,12 +30,12 @@ internal interface IHealthChecker
     /// Starts background health checking for all registered services
     /// </summary>
     Task StartAsync(CancellationToken cancellationToken);
-    
+
     /// <summary>
     /// Stops background health checking
     /// </summary>
     Task StopAsync(CancellationToken cancellationToken);
-    
+
     /// <summary>
     /// Gets the current health status of a service instance
     /// </summary>

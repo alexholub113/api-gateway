@@ -18,11 +18,11 @@ internal class LoadBalancingMiddleware(RequestDelegate next, ILoadBalancer loadB
         {
             var loadBalancingOptions = options.CurrentValue;
             var strategy = gatewayContext.RouteMatch.LoadBalancingStrategy ?? loadBalancingOptions.DefaultStrategy;
-            
+
             var selectedInstance = await loadBalancer.SelectInstanceAsync(
-                gatewayContext.RouteMatch.TargetServiceName, 
+                gatewayContext.RouteMatch.TargetServiceName,
                 strategy);
-            
+
             if (selectedInstance != null)
             {
                 gatewayContext.SelectedInstance = selectedInstance;
@@ -35,7 +35,7 @@ internal class LoadBalancingMiddleware(RequestDelegate next, ILoadBalancer loadB
                 return;
             }
         }
-        
+
         await next(context);
     }
 }

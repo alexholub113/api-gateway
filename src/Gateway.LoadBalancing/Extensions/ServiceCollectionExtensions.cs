@@ -20,13 +20,13 @@ public static class ServiceCollectionExtensions
             .BindConfiguration(LoadBalancingOptions.SectionName)
             .ValidateDataAnnotations()
             .ValidateOnStart();
-        
+
         // Register services
         services.AddSingleton<ILoadBalancer, LoadBalancerService>();
         services.AddSingleton<IHealthChecker, HealthCheckerService>();
-        services.AddHostedService<HealthCheckerService>(provider => 
+        services.AddHostedService<HealthCheckerService>(provider =>
             (HealthCheckerService)provider.GetRequiredService<IHealthChecker>());
-        
+
         return services;
     }
 }

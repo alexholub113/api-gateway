@@ -23,7 +23,7 @@ internal class HealthCheckerService(
         while (!stoppingToken.IsCancellationRequested)
         {
             await CheckAllInstancesHealth();
-            
+
             var options = loadBalancingOptions.CurrentValue;
             await Task.Delay(TimeSpan.FromSeconds(options.HealthCheckIntervalSeconds), stoppingToken);
         }
@@ -68,7 +68,7 @@ internal class HealthCheckerService(
     {
         var services = servicesOptions.CurrentValue.Services;
         var options = loadBalancingOptions.CurrentValue;
-        
+
         var healthCheckTasks = new List<Task>();
 
         foreach (var service in services)
@@ -86,7 +86,7 @@ internal class HealthCheckerService(
     private async Task CheckInstanceHealth(string serviceName, string instanceUrl, HealthCheckConfiguration? healthCheck, LoadBalancingOptions options)
     {
         var key = $"{serviceName}:{instanceUrl}";
-        
+
         try
         {
             if (healthCheck?.Path == null)
@@ -98,10 +98,10 @@ internal class HealthCheckerService(
 
             var httpClient = httpClientFactory.CreateClient();
             httpClient.Timeout = TimeSpan.FromSeconds(options.HealthCheckTimeoutSeconds);
-            
+
             var healthUrl = $"{instanceUrl.TrimEnd('/')}{healthCheck.Path}";
             var response = await httpClient.GetAsync(healthUrl);
-            
+
             var isHealthy = response.IsSuccessStatusCode;
             UpdateHealthStatus(key, isHealthy);
         }
@@ -114,14 +114,14 @@ internal class HealthCheckerService(
     private void UpdateHealthStatus(string key, bool isHealthy)
     {
         var options = loadBalancingOptions.CurrentValue;
-        
-        _healthStatuses.AddOrUpdate(key, 
+
+        _healthStatuses.AddOrUpdate(key,
             new InstanceHealthStatus { IsHealthy = isHealthy, ConsecutiveFailures = isHealthy ? 0 : 1, LastCheckTime = DateTime.UtcNow },
             (k, existing) =>
             {
                 var consecutiveFailures = isHealthy ? 0 : existing.ConsecutiveFailures + 1;
                 var shouldBeHealthy = isHealthy || consecutiveFailures < options.MaxConsecutiveFailures;
-                
+
                 // If instance was unhealthy, check retry delay
                 if (!existing.IsHealthy && !isHealthy)
                 {
@@ -131,7 +131,7 @@ internal class HealthCheckerService(
                         shouldBeHealthy = false;
                     }
                 }
-                
+
                 return new InstanceHealthStatus
                 {
                     IsHealthy = shouldBeHealthy,
