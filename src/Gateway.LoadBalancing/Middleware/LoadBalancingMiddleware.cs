@@ -1,4 +1,4 @@
-using Gateway.Core.Abstractions;
+using Gateway.Core.Extensions;
 using Gateway.LoadBalancing.Abstractions;
 using Gateway.LoadBalancing.Configuration;
 using Microsoft.AspNetCore.Http;
@@ -11,8 +11,10 @@ namespace Gateway.LoadBalancing.Middleware;
 /// </summary>
 internal class LoadBalancingMiddleware(RequestDelegate next, ILoadBalancer loadBalancer, IOptionsMonitor<LoadBalancingOptions> options)
 {
-    public async Task InvokeAsync(HttpContext context, IGatewayContext gatewayContext)
+    public async Task InvokeAsync(HttpContext context)
     {
+        var gatewayContext = context.GetGatewayContext();
+
         // Only process if we have a route match but no selected instance yet
         if (gatewayContext.RouteMatch != null && gatewayContext.SelectedInstance == null)
         {
