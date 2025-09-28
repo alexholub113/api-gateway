@@ -1,4 +1,4 @@
-using Gateway.Common;
+using Gateway.Common.Models.Result;
 
 namespace Gateway.LoadBalancing;
 

@@ -1,4 +1,4 @@
-using Gateway.Common;
+using Gateway.Common.Models.Result;
 using Gateway.LoadBalancing;
 using Gateway.Proxy;
 using Gateway.ServiceRouting;

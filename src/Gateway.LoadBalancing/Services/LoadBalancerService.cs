@@ -1,4 +1,4 @@
-using Gateway.Common;
+using Gateway.Common.Models.Result;
 using Gateway.LoadBalancing.Configuration;
 using Gateway.LoadBalancing.Models;
 using Microsoft.Extensions.Options;

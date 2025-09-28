@@ -1,4 +1,4 @@
-using Gateway.Common;
+using Gateway.Common.Models.Result;
 using Gateway.Proxy.Configuration;
 using Gateway.ServiceRouting.Models;
 using Microsoft.AspNetCore.Http;
