@@ -1,8 +1,4 @@
-
-using Gateway.Proxy.Configuration;
 using Gateway.Proxy.Services;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Polly;
 
 namespace Gateway.Proxy.Extensions;
@@ -21,7 +17,7 @@ public static class ProxyExtensions
         services.Configure<ProxyOptions>(configuration.GetSection(ProxyOptions.SectionName));
 
         // Register the proxy service
-        services.AddSingleton<ProxyHandler>();
+        services.AddSingleton<IProxyHandler, ProxyHandler>();
 
         // Configure HTTP client with resilience policies
         var proxyOptions = configuration.GetSection(ProxyOptions.SectionName).Get<ProxyOptions>() ?? new ProxyOptions();
