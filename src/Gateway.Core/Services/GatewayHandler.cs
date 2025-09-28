@@ -1,9 +1,6 @@
-using Gateway.Common.Extensions;
-using Gateway.Common.Models.Result;
 using Gateway.LoadBalancing;
 using Gateway.Proxy;
 using Gateway.ServiceRouting;
-using Microsoft.AspNetCore.Http;
 
 namespace Gateway.Core.Services;
 

@@ -1,7 +1,4 @@
-﻿using Gateway.Core;
-using MinimalEndpoints.Abstractions;
-
-namespace Gateway.Api.Endpoints;
+﻿namespace Gateway.Api.Endpoints;
 
 public class RouteEndpoint : IEndpoint
 {

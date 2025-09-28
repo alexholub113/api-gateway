@@ -1,5 +1,3 @@
-using Gateway.Common.Models.Result;
-
 namespace Gateway.Common.Extensions;
 
 /// <summary>

@@ -1,6 +1,3 @@
-using Gateway.Common.Models.Result;
-using Gateway.ServiceRouting.Models;
-
 namespace Gateway.ServiceRouting;
 
 /// <summary>
