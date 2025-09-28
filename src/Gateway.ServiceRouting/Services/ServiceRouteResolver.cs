@@ -10,24 +10,9 @@ namespace Gateway.ServiceRouting.Services;
 /// </summary>
 internal class ServiceRouteResolver(IOptionsMonitor<ServiceRoutingOptions> routingOptions) : IRouteResolver
 {
-    public Result<RouteMatch> ResolveRoute(string path, string method)
+    public Result<RouteMatch> ResolveRoute(string serviceId, string method, string downstreamPath)
     {
         var currentRoutingOptions = routingOptions.CurrentValue;
-        // Check if path matches the dynamic routing pattern: /{RoutePrefix}/{serviceId}/**
-        var routePrefix = currentRoutingOptions.RoutePrefix.Trim('/');
-        var expectedPrefix = $"/{routePrefix}/";
-
-        if (!path.StartsWith(expectedPrefix, StringComparison.OrdinalIgnoreCase))
-            return Result<RouteMatch>.Failure($"Path does not start with expected routing prefix '/{routePrefix}/'");
-
-        // Extract service ID from path: /route/{serviceId}/remaining/path
-        var pathAfterPrefix = path[expectedPrefix.Length..];
-        var segments = pathAfterPrefix.Split('/', StringSplitOptions.RemoveEmptyEntries);
-
-        if (segments.Length == 0)
-            return Result<RouteMatch>.Failure("No service ID found in path");
-
-        var serviceId = segments[0];
 
         // Find matching route configuration
         var routeConfig = currentRoutingOptions.Routes.FirstOrDefault(r =>
@@ -41,9 +26,8 @@ internal class ServiceRouteResolver(IOptionsMonitor<ServiceRoutingOptions> routi
             return Result<RouteMatch>.Failure($"Method '{method}' not allowed for service '{serviceId}'");
 
         var routeMatch = new RouteMatch(
-            RouteId: routeConfig.ServiceId,
-            Pattern: $"/{routePrefix}/{routeConfig.ServiceId}/*",
-            TargetServiceName: routeConfig.TargetService,
+            ServiceId: routeConfig.ServiceId,
+            DownstreamPath: downstreamPath,
             AuthPolicy: routeConfig.AuthPolicy,
             RateLimitPolicy: routeConfig.RateLimitPolicy,
             CachePolicy: routeConfig.CachePolicy,

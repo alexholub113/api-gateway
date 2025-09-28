@@ -11,5 +11,5 @@ public interface IRouteResolver
     /// <summary>
     /// Resolves a route for the given path and HTTP method
     /// </summary>
-    Result<RouteMatch> ResolveRoute(string path, string method);
+    Result<RouteMatch> ResolveRoute(string serviceId, string method, string downstreamPath);
 }

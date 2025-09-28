@@ -16,7 +16,7 @@ internal class ProxyHandler(IHttpClientFactory httpClientFactory, IOptionsMonito
         try
         {
             var httpClient = httpClientFactory.CreateClient(ProxyConstants.HttpClientName);
-            var targetUrl = BuildTargetUrl(context.Request, routeMatch, uri);
+            var targetUrl = BuildTargetUrl(uri, routeMatch);
             var proxyRequest = await CreateProxyRequestAsync(context.Request, targetUrl);
 
             using var response = await httpClient.SendAsync(proxyRequest, HttpCompletionOption.ResponseHeadersRead);
@@ -39,45 +39,34 @@ internal class ProxyHandler(IHttpClientFactory httpClientFactory, IOptionsMonito
         }
     }
 
-    private static string BuildTargetUrl(HttpRequest request, RouteMatch routeMatch, Uri uri)
+    private static string BuildTargetUrl(Uri uri, RouteMatch routeMatch)
     {
-        var baseUrl = uri;
-        var path = request.Path.ToString();
-        var queryString = request.QueryString.ToString();
+        var baseUrl = uri.ToString().TrimEnd('/');
+        var downstreamPath = routeMatch.DownstreamPath?.TrimStart('/') ?? string.Empty;
 
-        // If we have a dynamic route pattern, strip the routing prefix
-        // e.g., "/route/target-service/users/list" becomes "/users/list"
-        if (routeMatch != null && routeMatch.Pattern.Contains("*"))
+        if (string.IsNullOrEmpty(downstreamPath))
         {
-            // Extract the route prefix from the pattern (e.g., "/route/target-service/*")
-            var patternWithoutWildcard = routeMatch.Pattern.TrimEnd('*').TrimEnd('/');
-
-            if (path.StartsWith(patternWithoutWildcard, StringComparison.OrdinalIgnoreCase))
-            {
-                // Remove the routing prefix, leaving the actual API path
-                path = path[patternWithoutWildcard.Length..];
-
-                // Ensure path starts with '/' for the target service
-                if (!path.StartsWith('/'))
-                    path = "/" + path;
-            }
+            return baseUrl;
         }
 
-        return baseUrl + path + queryString;
+        return $"{baseUrl}/{downstreamPath}";
     }
 
-    private Task<HttpRequestMessage> CreateProxyRequestAsync(HttpRequest request, string targetUrl)
+    private async Task<HttpRequestMessage> CreateProxyRequestAsync(HttpRequest request, string targetUrl)
     {
         var proxyRequest = new HttpRequestMessage(new HttpMethod(request.Method), targetUrl);
+        var contentHeaders = new List<KeyValuePair<string, string[]>>();
 
-        // Copy headers
+        // Copy headers (separate content headers for later)
         foreach (var header in request.Headers)
         {
             if (!options.CurrentValue.ExcludedHeaders.Contains(header.Key, StringComparer.OrdinalIgnoreCase))
             {
-                if (!proxyRequest.Headers.TryAddWithoutValidation(header.Key, header.Value.ToArray()))
+                // Try to add as request header first
+                if (!proxyRequest.Headers.TryAddWithoutValidation(header.Key, [.. header.Value]))
                 {
-                    // If it's a content header, we'll add it after setting the content
+                    // If it fails, it might be a content header - store it for later
+                    contentHeaders.Add(new KeyValuePair<string, string[]>(header.Key, header.Value.ToArray()!));
                 }
             }
         }
@@ -86,23 +75,31 @@ internal class ProxyHandler(IHttpClientFactory httpClientFactory, IOptionsMonito
         if (request.Method != HttpMethods.Get && request.Method != HttpMethods.Head &&
             request.ContentLength > 0)
         {
-            var content = new StreamContent(request.Body);
+            // Create content with the request body
+            var bodyBytes = new byte[request.ContentLength ?? 0];
+            if (request.ContentLength > 0)
+            {
+                await request.Body.ReadExactlyAsync(bodyBytes, 0, (int)request.ContentLength.Value);
+            }
 
-            // Copy content headers
+            var content = new ByteArrayContent(bodyBytes);
+
+            // Add content headers
+            foreach (var contentHeader in contentHeaders)
+            {
+                content.Headers.TryAddWithoutValidation(contentHeader.Key, contentHeader.Value);
+            }
+
+            // Ensure essential content headers are set
             if (request.ContentType != null)
             {
                 content.Headers.TryAddWithoutValidation("Content-Type", request.ContentType);
             }
 
-            if (request.ContentLength.HasValue)
-            {
-                content.Headers.TryAddWithoutValidation("Content-Length", request.ContentLength.ToString());
-            }
-
             proxyRequest.Content = content;
         }
 
-        return Task.FromResult(proxyRequest);
+        return proxyRequest;
     }
 
     private static async Task CopyResponseAsync(HttpResponseMessage response, HttpResponse httpResponse)
