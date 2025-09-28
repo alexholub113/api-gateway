@@ -10,7 +10,7 @@ public class RouteEndpoint : IEndpoint
             HandleAsync);
     }
 
-    private static async ValueTask<IResult> HandleAsync(
+    private static async Task HandleAsync(
         string serviceId,
         string downstreamPath,
         HttpContext context,
@@ -20,9 +20,14 @@ public class RouteEndpoint : IEndpoint
 
         if (result.IsFailure)
         {
-            return Results.BadRequest(result.Error);
+            // Only set response if proxy failed and response hasn't started
+            if (!context.Response.HasStarted)
+            {
+                context.Response.StatusCode = 400;
+                await context.Response.WriteAsync(result.Error.Message);
+            }
         }
 
-        return Results.Ok();
+        // If successful, response has already been written by ProxyHandler
     }
 }
