@@ -1,7 +1,7 @@
 using Gateway.Core.Extensions;
-using Gateway.ServiceRouting.Extensions;
-using Gateway.Proxy.Extensions;
 using Gateway.LoadBalancing.Extensions;
+using Gateway.Proxy.Extensions;
+using Gateway.ServiceRouting.Extensions;
 using MinimalEndpoints.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,13 +29,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapEndpoints();
-
-// Add modules middlewares
-app
-    .UseGatewayCore()
-    .UseGatewayServiceRouting()
-    .UseLoadBalancing()
-    .UseGatewayProxy();
 
 app.Run();
 

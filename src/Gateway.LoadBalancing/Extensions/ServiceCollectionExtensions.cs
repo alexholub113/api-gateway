@@ -1,4 +1,3 @@
-using Gateway.LoadBalancing.Abstractions;
 using Gateway.LoadBalancing.Configuration;
 using Gateway.LoadBalancing.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,11 +19,15 @@ public static class ServiceCollectionExtensions
             .BindConfiguration(LoadBalancingOptions.SectionName)
             .ValidateDataAnnotations()
             .ValidateOnStart();
+        services.AddOptions<ServicesOptions>()
+            .BindConfiguration(ServicesOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
 
         // Register services
         services.AddSingleton<ILoadBalancer, LoadBalancerService>();
         services.AddSingleton<IHealthChecker, HealthCheckerService>();
-        services.AddHostedService<HealthCheckerService>(provider =>
+        services.AddHostedService(provider =>
             (HealthCheckerService)provider.GetRequiredService<IHealthChecker>());
 
         return services;

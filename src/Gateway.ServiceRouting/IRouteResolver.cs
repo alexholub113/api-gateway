@@ -1,6 +1,7 @@
-using Gateway.Core.Abstractions;
+using Gateway.Common;
+using Gateway.ServiceRouting.Models;
 
-namespace Gateway.ServiceRouting.Abstractions;
+namespace Gateway.ServiceRouting;
 
 /// <summary>
 /// Service responsible for resolving routes based on incoming requests

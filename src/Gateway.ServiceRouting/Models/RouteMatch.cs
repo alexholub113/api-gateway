@@ -1,4 +1,4 @@
-namespace Gateway.Core.Abstractions;
+namespace Gateway.ServiceRouting.Models;
 
 /// <summary>
 /// Represents a successful route match for an incoming request

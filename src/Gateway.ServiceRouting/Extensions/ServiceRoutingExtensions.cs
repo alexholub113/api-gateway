@@ -1,7 +1,5 @@
-using Gateway.ServiceRouting.Abstractions;
 using Gateway.ServiceRouting.Configuration;
 using Gateway.ServiceRouting.Services;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -23,13 +21,5 @@ public static class ServiceRoutingExtensions
 
         services.AddSingleton<IRouteResolver, ServiceRouteResolver>();
         return services;
-    }
-
-    /// <summary>
-    /// Adds gateway routing middleware to the application pipeline
-    /// </summary>
-    public static IApplicationBuilder UseGatewayServiceRouting(this IApplicationBuilder app)
-    {
-        return app.UseMiddleware<ServiceRoutingMiddleware>();
     }
 }

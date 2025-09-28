@@ -1,4 +1,4 @@
-namespace Gateway.Core.Abstractions;
+namespace Gateway.Common;
 
 /// <summary>
 /// Represents the result of an operation that can succeed or fail
@@ -6,20 +6,19 @@ namespace Gateway.Core.Abstractions;
 /// <typeparam name="T">The type of the success value</typeparam>
 public class Result<T>
 {
-    private Result(T? value, bool isSuccess, string? error)
+    private Result(T? value, string? error)
     {
         Value = value;
-        IsSuccess = isSuccess;
         Error = error;
     }
 
     public T? Value { get; }
-    public bool IsSuccess { get; }
+    public bool IsSuccess => string.IsNullOrEmpty(Error);
     public string? Error { get; }
     public bool IsFailure => !IsSuccess;
 
-    public static Result<T> Success(T value) => new(value, true, null);
-    public static Result<T> Failure(string error) => new(default, false, error);
+    public static Result<T> Success(T value) => new(value, null);
+    public static Result<T> Failure(string error) => new(default, error);
 
     public static implicit operator Result<T>(T value) => Success(value);
 }

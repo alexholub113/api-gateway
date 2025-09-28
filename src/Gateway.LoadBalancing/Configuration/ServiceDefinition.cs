@@ -1,10 +1,10 @@
-namespace Gateway.Core.Abstractions;
+namespace Gateway.LoadBalancing.Configuration;
 
 /// <summary>
 /// Defines a backend service that can handle requests
 /// </summary>
-public record ServiceDefinition(
+internal record ServiceDefinition(
     string Name,
     IReadOnlyList<ServiceInstance> Instances,
-    HealthCheckConfiguration? HealthCheck = null
+    HealthCheckSettings? HealthCheck = null
 );

@@ -1,5 +1,6 @@
-using Gateway.Core.Abstractions;
+using Gateway.Common;
 using Gateway.Proxy.Configuration;
+using Gateway.ServiceRouting.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 
@@ -8,19 +9,14 @@ namespace Gateway.Proxy.Services;
 /// <summary>
 /// HTTP proxy service that forwards requests to target services
 /// </summary>
-internal class HttpProxyService(IHttpClientFactory httpClientFactory, IOptionsMonitor<ProxyOptions> options)
+internal class ProxyHandler(IHttpClientFactory httpClientFactory, IOptionsMonitor<ProxyOptions> options) : IProxyHandler
 {
-    public async Task<Result> ProxyRequestAsync(HttpContext context, IGatewayContext gatewayContext)
+    public async Task<Result> ProxyRequestAsync(HttpContext context, RouteMatch routeMatch, Uri uri)
     {
-        if (gatewayContext.SelectedInstance == null)
-        {
-            return Result.Failure("No service instance selected for proxying");
-        }
-
         try
         {
             var httpClient = httpClientFactory.CreateClient(ProxyConstants.HttpClientName);
-            var targetUrl = BuildTargetUrl(context.Request, gatewayContext.SelectedInstance, gatewayContext.RouteMatch);
+            var targetUrl = BuildTargetUrl(context.Request, routeMatch, uri);
             var proxyRequest = await CreateProxyRequestAsync(context.Request, targetUrl);
 
             using var response = await httpClient.SendAsync(proxyRequest, HttpCompletionOption.ResponseHeadersRead);
@@ -43,9 +39,9 @@ internal class HttpProxyService(IHttpClientFactory httpClientFactory, IOptionsMo
         }
     }
 
-    private static string BuildTargetUrl(HttpRequest request, ServiceInstance serviceInstance, RouteMatch? routeMatch)
+    private static string BuildTargetUrl(HttpRequest request, RouteMatch routeMatch, Uri uri)
     {
-        var baseUrl = serviceInstance.Url.TrimEnd('/');
+        var baseUrl = uri;
         var path = request.Path.ToString();
         var queryString = request.QueryString.ToString();
 
@@ -67,7 +63,7 @@ internal class HttpProxyService(IHttpClientFactory httpClientFactory, IOptionsMo
             }
         }
 
-        return $"{baseUrl}{path}{queryString}";
+        return baseUrl + path + queryString;
     }
 
     private Task<HttpRequestMessage> CreateProxyRequestAsync(HttpRequest request, string targetUrl)

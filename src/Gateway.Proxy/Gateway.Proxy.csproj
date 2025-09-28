@@ -1,7 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\Gateway.Core\Gateway.Core.csproj" />
+    <ProjectReference Include="..\Gateway.Common\Gateway.Common.csproj" />
+    <ProjectReference Include="..\Gateway.ServiceRouting\Gateway.ServiceRouting.csproj" />
   </ItemGroup>
 
   <ItemGroup>

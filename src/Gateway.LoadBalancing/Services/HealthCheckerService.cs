@@ -1,6 +1,3 @@
-using Gateway.Core.Abstractions;
-using Gateway.Core.Configuration;
-using Gateway.LoadBalancing.Abstractions;
 using Gateway.LoadBalancing.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
@@ -20,6 +17,8 @@ internal class HealthCheckerService(
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        InitializeHealthStatuses();
+
         while (!stoppingToken.IsCancellationRequested)
         {
             await CheckAllInstancesHealth();
@@ -29,21 +28,10 @@ internal class HealthCheckerService(
         }
     }
 
-    public override Task StartAsync(CancellationToken cancellationToken)
-    {
-        InitializeHealthStatuses();
-        return base.StartAsync(cancellationToken);
-    }
-
-    public override Task StopAsync(CancellationToken cancellationToken)
-    {
-        return base.StopAsync(cancellationToken);
-    }
-
     public bool IsHealthy(string serviceName, string instanceUrl)
     {
         var key = $"{serviceName}:{instanceUrl}";
-        return _healthStatuses.TryGetValue(key, out var status) ? status.IsHealthy : true;
+        return !_healthStatuses.TryGetValue(key, out var status) || status.IsHealthy;
     }
 
     private void InitializeHealthStatuses()
@@ -54,12 +42,7 @@ internal class HealthCheckerService(
             foreach (var instance in service.Instances)
             {
                 var key = $"{service.Name}:{instance.Url}";
-                _healthStatuses.TryAdd(key, new InstanceHealthStatus
-                {
-                    IsHealthy = true,
-                    ConsecutiveFailures = 0,
-                    LastCheckTime = DateTime.UtcNow
-                });
+                _healthStatuses.TryAdd(key, new InstanceHealthStatus(true, 0, DateTime.UtcNow));
             }
         }
     }
@@ -83,7 +66,7 @@ internal class HealthCheckerService(
         await Task.WhenAll(healthCheckTasks);
     }
 
-    private async Task CheckInstanceHealth(string serviceName, string instanceUrl, HealthCheckConfiguration? healthCheck, LoadBalancingOptions options)
+    private async Task CheckInstanceHealth(string serviceName, string instanceUrl, HealthCheckSettings? healthCheck, LoadBalancingOptions options)
     {
         var key = $"{serviceName}:{instanceUrl}";
 
@@ -116,7 +99,7 @@ internal class HealthCheckerService(
         var options = loadBalancingOptions.CurrentValue;
 
         _healthStatuses.AddOrUpdate(key,
-            new InstanceHealthStatus { IsHealthy = isHealthy, ConsecutiveFailures = isHealthy ? 0 : 1, LastCheckTime = DateTime.UtcNow },
+            new InstanceHealthStatus(isHealthy, isHealthy ? 0 : 1, DateTime.UtcNow),
             (k, existing) =>
             {
                 var consecutiveFailures = isHealthy ? 0 : existing.ConsecutiveFailures + 1;
@@ -132,19 +115,9 @@ internal class HealthCheckerService(
                     }
                 }
 
-                return new InstanceHealthStatus
-                {
-                    IsHealthy = shouldBeHealthy,
-                    ConsecutiveFailures = consecutiveFailures,
-                    LastCheckTime = DateTime.UtcNow
-                };
+                return new InstanceHealthStatus(shouldBeHealthy, consecutiveFailures, DateTime.UtcNow);
             });
     }
 
-    private class InstanceHealthStatus
-    {
-        public bool IsHealthy { get; set; }
-        public int ConsecutiveFailures { get; set; }
-        public DateTime LastCheckTime { get; set; }
-    }
+    private record InstanceHealthStatus(bool IsHealthy, int ConsecutiveFailures, DateTime LastCheckTime);
 }

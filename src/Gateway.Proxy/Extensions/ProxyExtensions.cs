@@ -1,7 +1,6 @@
 
 using Gateway.Proxy.Configuration;
 using Gateway.Proxy.Services;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly;
@@ -19,13 +18,13 @@ public static class ProxyExtensions
     public static IServiceCollection AddGatewayProxy(this IServiceCollection services, IConfiguration configuration)
     {
         // Configure proxy options
-        services.Configure<ProxyOptions>(configuration.GetSection("Gateway:Proxy"));
+        services.Configure<ProxyOptions>(configuration.GetSection(ProxyOptions.SectionName));
 
         // Register the proxy service
-        services.AddSingleton<HttpProxyService>();
+        services.AddSingleton<ProxyHandler>();
 
         // Configure HTTP client with resilience policies
-        var proxyOptions = configuration.GetSection("Gateway:Proxy").Get<ProxyOptions>() ?? new ProxyOptions();
+        var proxyOptions = configuration.GetSection(ProxyOptions.SectionName).Get<ProxyOptions>() ?? new ProxyOptions();
 
         services.AddHttpClient(ProxyConstants.HttpClientName)
             .ConfigureHttpClient(client =>
@@ -53,13 +52,5 @@ public static class ProxyExtensions
             });
 
         return services;
-    }
-
-    /// <summary>
-    /// Adds the proxy middleware to the application pipeline
-    /// </summary>
-    public static IApplicationBuilder UseGatewayProxy(this IApplicationBuilder app)
-    {
-        return app.UseMiddleware<ProxyMiddleware>();
     }
 }

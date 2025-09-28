@@ -1,6 +1,4 @@
-using Gateway.Core.Configuration;
 using Gateway.Core.Services;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -17,17 +15,8 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddGatewayCore(this IServiceCollection services, IConfiguration configuration)
     {
         // Configure services options
-        services.Configure<ServicesOptions>(
-            configuration.GetSection(ServicesOptions.SectionName));
+        services.AddSingleton<IGatewayHandler, GatewayHandler>();
 
         return services;
-    }
-
-    /// <summary>
-    /// Adds gateway core middleware to the application pipeline
-    /// </summary>
-    public static IApplicationBuilder UseGatewayCore(this IApplicationBuilder app)
-    {
-        return app.UseMiddleware<GatewayContextMiddleware>();
     }
 }

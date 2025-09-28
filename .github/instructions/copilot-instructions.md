@@ -39,17 +39,20 @@ src/
 ├── Gateway.HealthChecks/ # Health monitoring
 └── Gateway.Proxy/ # HTTP proxy functionality
 
+Gateway.Api - is web layer, responsible for web logic, using minimal api endpoints and use Gateway.Core.
+Gateway.Core - entry point to the domain business logic, responsible for core logic of gateway, it references other Gateway modules. Gateway.Core provides public interface 'IGatewayHandler' that is called by Gateway.Api to handle gateway requests.
+
 # Module structure:
 
 ## Example:
 
 Gateway.XXX/
-├── Abstractions/ (public API only, if any)
 ├── Configuration/
 ├── Services/ (Internal implementation, services, middleware, etc., if any)
 ├── Extensions/ (Public registration methods)
 ├── Models/ (Internal models, if any)
 └── Gateway.XXX.csproj
+└── IPublicModuleServiceInterface.cs
 
 # Integration with Gateway.Api:
 
@@ -71,14 +74,9 @@ builder.Services
 
 var app = builder.Build();
 
-// Use middlewares
+// We could use middlewares for some scenarios
 Just an example:
-app.UseRateLimiting()
-.UseCircuitBreaker()
-.UseAuthentication()
-.UseCaching()
-.UseLoadBalancing()
-.UseProxy();
+app.Use{ModuleMiddleware}()
 
 # Shared context for communication between modules:
 
@@ -109,8 +107,9 @@ private const string GatewayContextKey = "Gateway.Context";
 - Use Result<T> pattern for expected errors.
 - Standard HTTP status codes
 
-# Rules
+# Instructions for AI:
 
+- if user uses 'Ask' mode instead of 'Agent', then avoid providing detail implementation, focus on describing of options, approaches, solutions instead.
 - create seperate file for each class or interface (except request and response models in endpoints).
 - let user create projects (.csproj) by himself manually.
 - use primary constructors.
