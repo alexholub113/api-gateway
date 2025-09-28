@@ -18,7 +18,6 @@ internal class ServiceRoutingOptions
 /// </summary>
 internal record ServiceRouteConfiguration(
     string ServiceId,
-    string TargetService,
     string[] Methods,
     string? AuthPolicy = null,
     string? RateLimitPolicy = null,
