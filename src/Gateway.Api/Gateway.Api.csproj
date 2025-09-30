@@ -2,9 +2,6 @@
   
   <ItemGroup>
     <ProjectReference Include="..\Gateway.Core\Gateway.Core.csproj" />
-    <ProjectReference Include="..\Gateway.ServiceRouting\Gateway.ServiceRouting.csproj" />
-    <ProjectReference Include="..\Gateway.Proxy\Gateway.Proxy.csproj" />
-    <ProjectReference Include="..\Gateway.LoadBalancing\Gateway.LoadBalancing.csproj" />
   </ItemGroup>
 
   <ItemGroup>

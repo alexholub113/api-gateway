@@ -12,10 +12,6 @@ public static class ServiceRoutingExtensions
     /// </summary>
     public static IServiceCollection AddGatewayServiceRouting(this IServiceCollection services, IConfiguration configuration)
     {
-        // Configure routing options
-        services.Configure<ServiceRoutingOptions>(
-            configuration.GetSection(ServiceRoutingOptions.SectionName));
-
         services.AddSingleton<IRouteResolver, ServiceRouteResolver>();
         return services;
     }

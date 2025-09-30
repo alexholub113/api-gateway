@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Gateway.LoadBalancing.Configuration;
+namespace Gateway.Core.Configuration;
 
 /// <summary>
 /// Represents a specific instance of a service
@@ -8,11 +8,11 @@ namespace Gateway.LoadBalancing.Configuration;
 internal record ServiceInstance
 {
     /// <summary>
-    /// The URL of the service instance
+    /// The Address of the service instance
     /// </summary>
-    [Required(ErrorMessage = "URL is required")]
-    [Url(ErrorMessage = "URL must be a valid HTTP or HTTPS URL")]
-    public required string Url { get; init; }
+    [Required(ErrorMessage = "Address is required")]
+    [Url(ErrorMessage = "Address must be a valid HTTP or HTTPS URL")]
+    public required string Address { get; init; }
 
     /// <summary>
     /// The weight for load balancing (must be greater than 0)

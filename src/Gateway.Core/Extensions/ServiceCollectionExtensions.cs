@@ -1,6 +1,5 @@
+using Gateway.Core.Configuration;
 using Gateway.Core.Services;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Gateway.Core.Extensions;
 
@@ -12,8 +11,13 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Adds core gateway services to the service collection
     /// </summary>
-    public static IServiceCollection AddGatewayCore(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddGatewayCore(this IServiceCollection services)
     {
+        services.AddOptions<GatewayOptions>()
+            .BindConfiguration(GatewayOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
         // Configure services options
         services.AddSingleton<IGatewayHandler, GatewayHandler>();
 

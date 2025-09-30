@@ -1,6 +1,4 @@
-using Gateway.LoadBalancing.Configuration;
 using Gateway.LoadBalancing.Services;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Gateway.LoadBalancing.Extensions;
 
@@ -17,10 +15,6 @@ public static class ServiceCollectionExtensions
         // Register configuration
         services.AddOptions<LoadBalancingOptions>()
             .BindConfiguration(LoadBalancingOptions.SectionName)
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
-        services.AddOptions<ServicesOptions>()
-            .BindConfiguration(ServicesOptions.SectionName)
             .ValidateDataAnnotations()
             .ValidateOnStart();
 

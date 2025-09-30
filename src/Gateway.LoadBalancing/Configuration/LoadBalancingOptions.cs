@@ -1,4 +1,4 @@
-using Gateway.LoadBalancing.Models;
+using Gateway.Common.Models;
 
 namespace Gateway.LoadBalancing.Configuration;
 
@@ -7,12 +7,17 @@ namespace Gateway.LoadBalancing.Configuration;
 /// </summary>
 internal class LoadBalancingOptions
 {
-    public const string SectionName = "LoadBalancing";
+    public const string SectionName = "Gateway:LoadBalancing";
 
     /// <summary>
     /// Default load balancing strategy to use when not specified
     /// </summary>
     public LoadBalancingStrategy DefaultStrategy { get; set; }
+
+    /// <summary>
+    /// Health check path
+    /// </summary>
+    public string HealthCheckPath { get; set; } = "/health";
 
     /// <summary>
     /// Health check interval in seconds

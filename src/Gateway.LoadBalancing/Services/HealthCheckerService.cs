@@ -1,7 +1,4 @@
-using Gateway.LoadBalancing.Configuration;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
-using System.Collections.Concurrent;
+using Gateway.Common.Configuration;
 
 namespace Gateway.LoadBalancing.Services;
 
@@ -9,7 +6,7 @@ namespace Gateway.LoadBalancing.Services;
 /// Background service that monitors health of service instances
 /// </summary>
 internal class HealthCheckerService(
-    IOptionsMonitor<ServicesOptions> servicesOptions,
+    IOptionsMonitor<GatewayOptions> servicesOptions,
     IOptionsMonitor<LoadBalancingOptions> loadBalancingOptions,
     IHttpClientFactory httpClientFactory) : BackgroundService, IHealthChecker
 {
@@ -36,12 +33,12 @@ internal class HealthCheckerService(
 
     private void InitializeHealthStatuses()
     {
-        var services = servicesOptions.CurrentValue.Services;
+        var services = servicesOptions.CurrentValue.TargetServices;
         foreach (var service in services)
         {
             foreach (var instance in service.Instances)
             {
-                var key = $"{service.Name}:{instance.Url}";
+                var key = $"{service.ServiceId}:{instance.Address}";
                 _healthStatuses.TryAdd(key, new InstanceHealthStatus(true, 0, DateTime.UtcNow));
             }
         }
@@ -49,7 +46,7 @@ internal class HealthCheckerService(
 
     private async Task CheckAllInstancesHealth()
     {
-        var services = servicesOptions.CurrentValue.Services;
+        var services = servicesOptions.CurrentValue.TargetServices;
         var options = loadBalancingOptions.CurrentValue;
 
         var healthCheckTasks = new List<Task>();
@@ -58,7 +55,7 @@ internal class HealthCheckerService(
         {
             foreach (var instance in service.Instances)
             {
-                var task = CheckInstanceHealth(service.Name, instance.Url, service.HealthCheck, options);
+                var task = CheckInstanceHealth(service.ServiceId, instance.Address, options);
                 healthCheckTasks.Add(task);
             }
         }
@@ -66,23 +63,16 @@ internal class HealthCheckerService(
         await Task.WhenAll(healthCheckTasks);
     }
 
-    private async Task CheckInstanceHealth(string serviceName, string instanceUrl, HealthCheckSettings? healthCheck, LoadBalancingOptions options)
+    private async Task CheckInstanceHealth(string serviceId, string instanceUrl, LoadBalancingOptions options)
     {
-        var key = $"{serviceName}:{instanceUrl}";
+        var key = $"{serviceId}:{instanceUrl}";
 
         try
         {
-            if (healthCheck?.Path == null)
-            {
-                // No health check configured, assume healthy
-                UpdateHealthStatus(key, true);
-                return;
-            }
-
             var httpClient = httpClientFactory.CreateClient();
             httpClient.Timeout = TimeSpan.FromSeconds(options.HealthCheckTimeoutSeconds);
 
-            var healthUrl = $"{instanceUrl.TrimEnd('/')}{healthCheck.Path}";
+            var healthUrl = $"{instanceUrl.TrimEnd('/')}{options.HealthCheckPath}";
             var response = await httpClient.GetAsync(healthUrl);
 
             var isHealthy = response.IsSuccessStatusCode;

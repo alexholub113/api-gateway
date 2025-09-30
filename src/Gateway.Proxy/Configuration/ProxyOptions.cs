@@ -5,7 +5,7 @@ namespace Gateway.Proxy.Configuration;
 /// </summary>
 internal class ProxyOptions
 {
-    public const string SectionName = "Proxy";
+    public const string SectionName = "Gateway:Proxy";
 
     /// <summary>
     /// Timeout for proxy requests in seconds. Default is 30 seconds.

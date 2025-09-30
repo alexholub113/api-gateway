@@ -14,7 +14,10 @@ public static class ProxyExtensions
     public static IServiceCollection AddGatewayProxy(this IServiceCollection services, IConfiguration configuration)
     {
         // Configure proxy options
-        services.Configure<ProxyOptions>(configuration.GetSection(ProxyOptions.SectionName));
+        services.AddOptions<ProxyOptions>()
+            .BindConfiguration(ProxyOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
 
         // Register the proxy service
         services.AddSingleton<IProxyHandler, ProxyHandler>();

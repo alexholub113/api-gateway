@@ -28,7 +28,6 @@ AuthZN is out of scope.
 src/
 ├── Gateway.Api/ # Main API project
 ├── Gateway.Core/ # Core abstractions and models
-├── Gateway.ServiceRouting/ # Path-based routing module
 ├── Gateway.RateLimiting/ # Rate limiting module
 ├── Gateway.LoadBalancing/ # Load balancing strategies
 ├── Gateway.CircuitBreaker/ # Circuit breaker pattern
@@ -61,7 +60,6 @@ var builder = WebApplication.CreateBuilder(args);
 // Add modules
 builder.Services
 .AddGatewayCore()
-.AddServiceRouting()
 .AddRateLimiting()
 .AddLoadBalancing()
 .AddCircuitBreaker()
@@ -77,29 +75,6 @@ var app = builder.Build();
 // We could use middlewares for some scenarios
 Just an example:
 app.Use{ModuleMiddleware}()
-
-# Shared context for communication between modules:
-
-public interface IGatewayContext
-{
-...
-}
-
-public static class HttpContextExtensions
-{
-private const string GatewayContextKey = "Gateway.Context";
-
-    public static IGatewayContext GetGatewayContext(this HttpContext context)
-    {
-        if (!context.Items.TryGetValue(GatewayContextKey, out var ctx))
-        {
-            ctx = new GatewayContext();
-            context.Items[GatewayContextKey] = ctx;
-        }
-        return (IGatewayContext)ctx;
-    }
-
-}
 
 # Error handling strategy:
 

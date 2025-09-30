@@ -1,9 +1,3 @@
-using Gateway.Common.Models.Result;
-using Gateway.Proxy.Configuration;
-using Gateway.ServiceRouting.Models;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Options;
-
 namespace Gateway.Proxy.Services;
 
 /// <summary>
@@ -11,12 +5,12 @@ namespace Gateway.Proxy.Services;
 /// </summary>
 internal class ProxyHandler(IHttpClientFactory httpClientFactory, IOptionsMonitor<ProxyOptions> options) : IProxyHandler
 {
-    public async Task<Result> ProxyRequestAsync(HttpContext context, RouteMatch routeMatch, Uri uri)
+    public async Task<Result> ProxyRequestAsync(HttpContext context, Uri uri, string downstreamPath)
     {
         try
         {
             var httpClient = httpClientFactory.CreateClient(ProxyConstants.HttpClientName);
-            var targetUrl = BuildTargetUrl(uri, routeMatch);
+            var targetUrl = BuildTargetUrl(uri, downstreamPath);
             var proxyRequest = await CreateProxyRequestAsync(context.Request, targetUrl);
 
             using var response = await httpClient.SendAsync(proxyRequest, HttpCompletionOption.ResponseHeadersRead);
@@ -39,16 +33,15 @@ internal class ProxyHandler(IHttpClientFactory httpClientFactory, IOptionsMonito
         }
     }
 
-    private static string BuildTargetUrl(Uri uri, RouteMatch routeMatch)
+    private static string BuildTargetUrl(Uri uri, string downstreamPath)
     {
         var baseUrl = uri.ToString().TrimEnd('/');
-        var downstreamPath = routeMatch.DownstreamPath?.TrimStart('/') ?? string.Empty;
-
         if (string.IsNullOrEmpty(downstreamPath))
         {
             return baseUrl;
         }
 
+        downstreamPath = downstreamPath.TrimStart('/') ?? string.Empty;
         return $"{baseUrl}/{downstreamPath}";
     }
 

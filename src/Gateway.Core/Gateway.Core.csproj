@@ -16,7 +16,6 @@
     <ProjectReference Include="..\Gateway.Common\Gateway.Common.csproj" />
     <ProjectReference Include="..\Gateway.LoadBalancing\Gateway.LoadBalancing.csproj" />
     <ProjectReference Include="..\Gateway.Proxy\Gateway.Proxy.csproj" />
-    <ProjectReference Include="..\Gateway.ServiceRouting\Gateway.ServiceRouting.csproj" />
   </ItemGroup>
 
 </Project>
