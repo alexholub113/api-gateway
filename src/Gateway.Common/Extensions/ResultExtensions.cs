@@ -46,6 +46,39 @@ public static class ResultExtensions
     }
 
     /// <summary>
+    /// Chains a Task of Result to another async result-returning operation
+    /// </summary>
+    public static async Task<Result<TOut>> BindAsync<TIn, TOut>(this Task<Result<TIn>> resultTask, Func<TIn, Task<Result<TOut>>> binder)
+    {
+        var result = await resultTask;
+        return result.IsFailure
+            ? Result<TOut>.Failure(result.Error)
+            : await binder(result.Value);
+    }
+
+    /// <summary>
+    /// Chains a Task of Result to a sync result-returning operation
+    /// </summary>
+    public static async Task<Result<TOut>> BindAsync<TIn, TOut>(this Task<Result<TIn>> resultTask, Func<TIn, Result<TOut>> binder)
+    {
+        var result = await resultTask;
+        return result.IsFailure
+            ? Result<TOut>.Failure(result.Error)
+            : binder(result.Value);
+    }
+
+    /// <summary>
+    /// Chains a Task of Result to a non-generic async Result operation
+    /// </summary>
+    public static async Task<Result> BindAsync<TIn>(this Task<Result<TIn>> resultTask, Func<TIn, Task<Result>> binder)
+    {
+        var result = await resultTask;
+        return result.IsFailure
+            ? Result.Failure(result.Error)
+            : await binder(result.Value);
+    }
+
+    /// <summary>
     /// Chains two successful results together
     /// </summary>
     public static Result<(TFirst First, TSecond Second)> Combine<TFirst, TSecond>(

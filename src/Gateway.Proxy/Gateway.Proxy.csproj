@@ -2,7 +2,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Gateway.Common\Gateway.Common.csproj" />
-    <ProjectReference Include="..\Gateway.ServiceRouting\Gateway.ServiceRouting.csproj" />
   </ItemGroup>
 
   <ItemGroup>

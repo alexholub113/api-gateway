@@ -1,21 +1,26 @@
-using Gateway.Core.Configuration;
+using Gateway.Common.Configuration;
 using Gateway.LoadBalancing;
 using Gateway.Proxy;
+using Gateway.RateLimiting;
 using Microsoft.Extensions.Options;
 
 namespace Gateway.Core.Services;
 
-internal class GatewayHandler(IOptionsMonitor<GatewayOptions> gatewayOptions, ILoadBalancer loadBalancer, IProxyHandler proxyHandler) : IGatewayHandler
+internal class GatewayHandler(
+    IOptionsMonitor<Gateway.Common.Configuration.GatewayOptions> gatewayOptions,
+    ILoadBalancer loadBalancer,
+    IProxyHandler proxyHandler,
+    IRateLimitService rateLimitService) : IGatewayHandler
 {
     public async ValueTask<Result> RouteRequestAsync(HttpContext context, string serviceId, string downstreamPath)
     {
-        return await GetTargetService(serviceId)
-            .Bind(serviceSettings => loadBalancer.SelectInstance(serviceSettings.ServiceId)
-            .Map(uri => (serviceSettings, uri)))
-            .BindAsync(results => proxyHandler.ProxyRequestAsync(context, results.uri, downstreamPath));
+        return await ResolveRoute(serviceId)
+            .Bind(targetServiceSettings => ApplyRateLimit(context, targetServiceSettings))
+            .Bind(targetServiceSettings => SelectTargetInstance(targetServiceSettings, downstreamPath))
+            .BindAsync(result => proxyHandler.ProxyRequestAsync(context, result.uri, downstreamPath));
     }
 
-    private Result<TargetServiceSettings> GetTargetService(string serviceId)
+    private Result<TargetServiceSettings> ResolveRoute(string serviceId)
     {
         // Find matching route configuration
         var routeService = gatewayOptions.CurrentValue.TargetServices.FirstOrDefault(r =>
@@ -25,5 +30,27 @@ internal class GatewayHandler(IOptionsMonitor<GatewayOptions> gatewayOptions, IL
             return Result<TargetServiceSettings>.Failure($"No target service found for service ID '{serviceId}'");
 
         return Result<TargetServiceSettings>.Success(routeService);
+    }
+
+    private Result<TargetServiceSettings> ApplyRateLimit(HttpContext context, TargetServiceSettings targetServiceSettings)
+    {
+        // Skip rate limiting if no policy is configured
+        if (string.IsNullOrEmpty(targetServiceSettings.RateLimitPolicy))
+            return Result<TargetServiceSettings>.Success(targetServiceSettings);
+
+        var result = rateLimitService.ApplyRateLimit(context, targetServiceSettings.RateLimitPolicy);
+
+        return result.IsSuccess
+            ? Result<TargetServiceSettings>.Success(targetServiceSettings)
+            : Result<TargetServiceSettings>.Failure(result.Error);
+    }
+
+    private Result<(Uri uri, string downstreamPath)> SelectTargetInstance(TargetServiceSettings targetServiceSettings, string downstreamPath)
+    {
+        var instanceResult = loadBalancer.SelectInstance(targetServiceSettings.ServiceId);
+
+        return instanceResult.IsSuccess
+            ? Result<(Uri uri, string downstreamPath)>.Success((instanceResult.Value, downstreamPath))
+            : Result<(Uri uri, string downstreamPath)>.Failure(instanceResult.Error);
     }
 }

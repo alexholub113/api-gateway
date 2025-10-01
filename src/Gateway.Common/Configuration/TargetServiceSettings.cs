@@ -12,4 +12,6 @@ public class TargetServiceSettings
 
     [Required]
     public ServiceInstance[] Instances { get; set; } = [];
+
+    public string? RateLimitPolicy { get; set; }
 }

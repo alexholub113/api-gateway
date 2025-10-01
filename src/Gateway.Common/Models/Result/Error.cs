@@ -49,4 +49,14 @@ public class Error
         ArgumentNullException.ThrowIfNullOrEmpty(errorMessage, nameof(errorMessage));
         return new Error(errorMessage, exception);
     }
+
+    public static Error TooManyRequests(string message = "Too many requests")
+    {
+        return new Error(message);
+    }
+
+    public static Error NotFound(string message)
+    {
+        return new Error(message);
+    }
 }

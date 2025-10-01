@@ -1,5 +1,6 @@
-using Gateway.Core.Configuration;
+using Gateway.Common.Configuration;
 using Gateway.Core.Services;
+using Gateway.RateLimiting.Extensions;
 
 namespace Gateway.Core.Extensions;
 
@@ -17,6 +18,9 @@ public static class ServiceCollectionExtensions
             .BindConfiguration(GatewayOptions.SectionName)
             .ValidateDataAnnotations()
             .ValidateOnStart();
+
+        // Add rate limiting services
+        services.AddRateLimiting();
 
         // Configure services options
         services.AddSingleton<IGatewayHandler, GatewayHandler>();

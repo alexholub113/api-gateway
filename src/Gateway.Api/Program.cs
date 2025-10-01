@@ -2,6 +2,7 @@ using Gateway.Common.Extensions;
 using Gateway.Core.Extensions;
 using Gateway.LoadBalancing.Extensions;
 using Gateway.Proxy.Extensions;
+using Gateway.RateLimiting.Extensions;
 using MinimalEndpoints.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,7 +12,8 @@ builder.Services
     .AddCommonServices()
     .AddGatewayCore()
     .AddGatewayProxy(builder.Configuration)
-    .AddLoadBalancing();
+    .AddLoadBalancing()
+    .AddRateLimiting();
 
 // Add API Explorer services (required for Swagger)
 builder.Services.AddEndpointsApiExplorer();
