@@ -2,6 +2,7 @@ using Gateway.Common.Configuration;
 using Gateway.LoadBalancing;
 using Gateway.Proxy;
 using Gateway.RateLimiting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Gateway.Core.Services;
@@ -10,7 +11,8 @@ internal class GatewayHandler(
     IOptionsMonitor<Gateway.Common.Configuration.GatewayOptions> gatewayOptions,
     ILoadBalancer loadBalancer,
     IProxyHandler proxyHandler,
-    IRateLimitService rateLimitService) : IGatewayHandler
+    IRateLimitService rateLimitService,
+    ILogger<GatewayHandler> logger) : IGatewayHandler
 {
     public async ValueTask<Result> RouteRequestAsync(HttpContext context, string serviceId, string downstreamPath)
     {
@@ -27,7 +29,10 @@ internal class GatewayHandler(
             r.ServiceId.Equals(serviceId, StringComparison.OrdinalIgnoreCase));
 
         if (routeService == null)
+        {
+            logger.LogWarning("No target service found for service ID '{ServiceId}'", serviceId);
             return Result<TargetServiceSettings>.Failure($"No target service found for service ID '{serviceId}'");
+        }
 
         return Result<TargetServiceSettings>.Success(routeService);
     }
@@ -49,8 +54,14 @@ internal class GatewayHandler(
     {
         var instanceResult = loadBalancer.SelectInstance(targetServiceSettings.ServiceId);
 
-        return instanceResult.IsSuccess
-            ? Result<(Uri uri, string downstreamPath)>.Success((instanceResult.Value, downstreamPath))
-            : Result<(Uri uri, string downstreamPath)>.Failure(instanceResult.Error);
+        if (instanceResult.IsSuccess)
+        {
+            return Result<(Uri uri, string downstreamPath)>.Success((instanceResult.Value, downstreamPath));
+        }
+        else
+        {
+            logger.LogError("Failed to select instance for service '{ServiceId}': {Error}", targetServiceSettings.ServiceId, instanceResult.Error.Message);
+            return Result<(Uri uri, string downstreamPath)>.Failure(instanceResult.Error);
+        }
     }
 }

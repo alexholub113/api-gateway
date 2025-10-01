@@ -1,4 +1,6 @@
-﻿namespace Gateway.Api.Endpoints;
+﻿using Microsoft.Extensions.Logging;
+
+namespace Gateway.Api.Endpoints;
 
 public class RouteEndpoint : IEndpoint
 {
@@ -14,12 +16,18 @@ public class RouteEndpoint : IEndpoint
         string serviceId,
         string downstreamPath,
         HttpContext context,
-        IGatewayHandler gatewayHandler)
+        IGatewayHandler gatewayHandler,
+        ILogger<RouteEndpoint> logger)
     {
+        var requestId = context.TraceIdentifier;
+
         var result = await gatewayHandler.RouteRequestAsync(context, serviceId, downstreamPath);
 
         if (result.IsFailure)
         {
+            logger.LogWarning("Request failed for service '{ServiceId}' with error: {Error} (RequestId: {RequestId})",
+                serviceId, result.Error.Message, requestId);
+
             // Only set response if proxy failed and response hasn't started
             if (!context.Response.HasStarted)
             {
@@ -27,7 +35,5 @@ public class RouteEndpoint : IEndpoint
                 await context.Response.WriteAsync(result.Error.Message);
             }
         }
-
-        // If successful, response has already been written by ProxyHandler
     }
 }

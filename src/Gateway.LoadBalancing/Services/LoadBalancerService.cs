@@ -1,5 +1,6 @@
 using Gateway.Common.Configuration;
 using Gateway.Common.Models;
+using Microsoft.Extensions.Logging;
 
 namespace Gateway.LoadBalancing.Services;
 
@@ -9,7 +10,8 @@ namespace Gateway.LoadBalancing.Services;
 internal class LoadBalancerService(
     IOptionsMonitor<GatewayOptions> servicesOptions,
     IOptionsMonitor<LoadBalancingOptions> loadBalancingOptions,
-    IHealthChecker healthChecker) : ILoadBalancer
+    IHealthChecker healthChecker,
+    ILogger<LoadBalancerService> logger) : ILoadBalancer
 {
     private readonly ConcurrentDictionary<string, int> _roundRobinCounters = new();
     private readonly Random _random = new();
@@ -20,7 +22,10 @@ internal class LoadBalancerService(
         var service = currentServicesOptions.TargetServices.FirstOrDefault(s => s.ServiceId == serviceId);
 
         if (service == null)
+        {
+            logger.LogWarning("Service '{ServiceId}' not found in configuration", serviceId);
             return Result<Uri>.Failure($"Service '{serviceId}' not found");
+        }
 
         // Get only healthy instances
         var healthyInstances = service.Instances
@@ -28,10 +33,13 @@ internal class LoadBalancerService(
             .ToArray();
         if (healthyInstances.Length == 0)
         {
+            logger.LogError("No healthy instances available for service '{ServiceId}'", serviceId);
             return Result<Uri>.Failure($"No instances available for service '{serviceId}'");
         }
 
-        var selectedInstance = loadBalancingOptions.CurrentValue.DefaultStrategy switch
+        var strategy = loadBalancingOptions.CurrentValue.DefaultStrategy;
+
+        var selectedInstance = strategy switch
         {
             LoadBalancingStrategy.RoundRobin => SelectRoundRobin(serviceId, healthyInstances),
             _ => SelectRoundRobin(serviceId, healthyInstances)

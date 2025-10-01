@@ -1,19 +1,28 @@
+using Microsoft.Extensions.Logging;
+
 namespace Gateway.Proxy.Services;
 
 /// <summary>
 /// HTTP proxy service that forwards requests to target services
 /// </summary>
-internal class ProxyHandler(IHttpClientFactory httpClientFactory, IOptionsMonitor<ProxyOptions> options) : IProxyHandler
+internal class ProxyHandler(IHttpClientFactory httpClientFactory, IOptionsMonitor<ProxyOptions> options, ILogger<ProxyHandler> logger) : IProxyHandler
 {
     public async Task<Result> ProxyRequestAsync(HttpContext context, Uri uri, string downstreamPath)
     {
+        var targetUrl = BuildTargetUrl(uri, downstreamPath);
+        var method = context.Request.Method;
+        var startTime = DateTime.UtcNow;
+
+        logger.LogInformation("Proxying {Method} request to '{TargetUrl}'", method, targetUrl);
+
         try
         {
             var httpClient = httpClientFactory.CreateClient(ProxyConstants.HttpClientName);
-            var targetUrl = BuildTargetUrl(uri, downstreamPath);
             var proxyRequest = await CreateProxyRequestAsync(context.Request, targetUrl);
 
             using var response = await httpClient.SendAsync(proxyRequest, HttpCompletionOption.ResponseHeadersRead);
+            var duration = DateTime.UtcNow - startTime;
+
 
             await CopyResponseAsync(response, context.Response);
 
@@ -21,14 +30,20 @@ internal class ProxyHandler(IHttpClientFactory httpClientFactory, IOptionsMonito
         }
         catch (HttpRequestException ex)
         {
+            var duration = DateTime.UtcNow - startTime;
+            logger.LogError(ex, "HTTP request failed for '{TargetUrl}' after {Duration}ms: {Error}", targetUrl, duration.TotalMilliseconds, ex.Message);
             return Result.Failure($"HTTP request failed: {ex.Message}");
         }
         catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
         {
+            var duration = DateTime.UtcNow - startTime;
+            logger.LogWarning("Request to '{TargetUrl}' timed out after {Duration}ms", targetUrl, duration.TotalMilliseconds);
             return Result.Failure("Request timeout");
         }
         catch (Exception ex)
         {
+            var duration = DateTime.UtcNow - startTime;
+            logger.LogError(ex, "Proxy request to '{TargetUrl}' failed after {Duration}ms: {Error}", targetUrl, duration.TotalMilliseconds, ex.Message);
             return Result.Failure($"Proxy request failed: {ex.Message}");
         }
     }
