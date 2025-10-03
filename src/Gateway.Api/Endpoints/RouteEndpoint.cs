@@ -24,7 +24,7 @@ public class RouteEndpoint : IEndpoint
 
         if (result.IsFailure)
         {
-            var serviceId = context.GetTargetServiceId() ?? "unknown";
+            var serviceId = context.GetGatewayTargetServiceId() ?? "unknown";
             logger.LogWarning("Request failed for service '{serviceId}' with error: {Error} (RequestId: {RequestId})",
                 serviceId, result.Error.Message, requestId);
 

@@ -9,40 +9,26 @@ internal class RateLimitService(IOptionsMonitor<RateLimitingOptions> options, IL
     private readonly SemaphoreSlim _cleanupSemaphore = new(1, 1);
     private DateTime _lastCleanup = DateTime.UtcNow;
 
-    public Result ApplyRateLimit(HttpContext context, string policyName)
+    public Result<RateLimitResult> ApplyRateLimit(HttpContext context, string policyName)
     {
         if (!options.CurrentValue.Policies.TryGetValue(policyName, out var policy))
         {
             logger.LogWarning("Rate limit policy '{policyName}' not found", policyName);
-            return Result.Failure(Error.NotFound($"Rate limit policy '{policyName}' not found"));
+            return Result<RateLimitResult>.Failure(Error.NotFound($"Rate limit policy '{policyName}' not found"));
         }
 
         var clientKey = ExtractClientKey(context);
         var rateLimitResult = IsRequestAllowedAsync(clientKey, policy);
 
         if (rateLimitResult.IsFailure)
-            return Result.Failure(rateLimitResult.Error);
+            return Result<RateLimitResult>.Failure(rateLimitResult.Error);
 
         var result = rateLimitResult.Value;
 
         // Set rate limit headers
         context.Response.Headers["X-RateLimit-Remaining"] = result.RemainingRequests.ToString();
 
-        if (!result.IsAllowed)
-        {
-            context.Response.Headers["X-RateLimit-Retry-After"] = ((int)result.RetryAfter.TotalSeconds).ToString();
-            context.Response.StatusCode = 429; // Too Many Requests
-
-            logger.LogInformation("Rate limit exceeded for client '{clientKey}' with policy '{policyName}'",
-                clientKey, policyName);
-
-            return Result.Failure(Error.TooManyRequests("Rate limit exceeded"));
-        }
-
-        logger.LogDebug("Rate limit check passed for client '{clientKey}' with policy '{policyName}', remaining: {RemainingRequests}",
-            clientKey, policyName, result.RemainingRequests);
-
-        return Result.Success();
+        return Result<RateLimitResult>.Success(result);
     }
 
     private Result<RateLimitResult> IsRequestAllowedAsync(string clientKey, RateLimitPolicy policy)
@@ -202,8 +188,6 @@ internal class RateLimitService(IOptionsMonitor<RateLimitingOptions> options, IL
             }
         }
     }
-
-    private record RateLimitResult(bool IsAllowed, int RemainingRequests, TimeSpan RetryAfter);
 
     private class ClientRateLimitState
     {

@@ -1,6 +1,8 @@
+using Gateway.RateLimiting.Models;
+
 namespace Gateway.RateLimiting;
 
 public interface IRateLimitService
 {
-    Result ApplyRateLimit(HttpContext context, string policyName);
+    Result<RateLimitResult> ApplyRateLimit(HttpContext context, string policyName);
 }

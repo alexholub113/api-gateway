@@ -12,7 +12,7 @@ public class CacheMiddleware(RequestDelegate next, ICacheService cacheService, I
     public async Task InvokeAsync(HttpContext context)
     {
         // Extract service ID from the request path or headers
-        var serviceId = context.GetTargetServiceId();
+        var serviceId = context.GetGatewayTargetServiceId();
         if (string.IsNullOrEmpty(serviceId))
         {
             await next(context);

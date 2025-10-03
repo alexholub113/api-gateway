@@ -22,12 +22,12 @@ public record CacheKey
     {
         var keyBuilder = new StringBuilder();
         keyBuilder.Append($"{ServiceId}:{Method}:{Path}");
-        
+
         if (!string.IsNullOrEmpty(QueryString))
         {
             keyBuilder.Append($"?{QueryString}");
         }
-        
+
         if (Headers.Any())
         {
             var sortedHeaders = Headers.OrderBy(h => h.Key);
@@ -36,14 +36,14 @@ public record CacheKey
                 keyBuilder.Append($"|{header.Key}={header.Value}");
             }
         }
-        
+
         if (!string.IsNullOrEmpty(UserId))
         {
             keyBuilder.Append($"|user={UserId}");
         }
-        
+
         var key = keyBuilder.ToString();
-        
+
         // Hash the key if it's too long for better performance
         if (key.Length > 250)
         {
@@ -51,7 +51,7 @@ public record CacheKey
             var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(key));
             return Convert.ToBase64String(hashBytes);
         }
-        
+
         return key;
     }
 }
