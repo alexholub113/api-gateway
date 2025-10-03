@@ -14,4 +14,5 @@ public class TargetServiceSettings
     public ServiceInstance[] Instances { get; set; } = [];
 
     public string? RateLimitPolicy { get; set; }
+    public string? CachePolicy { get; set; }
 }

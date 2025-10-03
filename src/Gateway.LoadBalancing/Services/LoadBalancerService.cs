@@ -23,7 +23,7 @@ internal class LoadBalancerService(
 
         if (service == null)
         {
-            logger.LogWarning("Service '{ServiceId}' not found in configuration", serviceId);
+            logger.LogWarning("Service '{TargetServiceId}' not found in configuration", serviceId);
             return Result<Uri>.Failure($"Service '{serviceId}' not found");
         }
 
@@ -33,7 +33,7 @@ internal class LoadBalancerService(
             .ToArray();
         if (healthyInstances.Length == 0)
         {
-            logger.LogError("No healthy instances available for service '{ServiceId}'", serviceId);
+            logger.LogError("No healthy instances available for service '{TargetServiceId}'", serviceId);
             return Result<Uri>.Failure($"No instances available for service '{serviceId}'");
         }
 

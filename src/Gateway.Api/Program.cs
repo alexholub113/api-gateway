@@ -1,19 +1,9 @@
-using Gateway.Common.Extensions;
 using Gateway.Core.Extensions;
-using Gateway.LoadBalancing.Extensions;
-using Gateway.Proxy.Extensions;
-using Gateway.RateLimiting.Extensions;
 using MinimalEndpoints.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add modules services
-builder.Services
-    .AddCommonServices()
-    .AddGatewayCore()
-    .AddGatewayProxy(builder.Configuration)
-    .AddLoadBalancing()
-    .AddRateLimiting();
+builder.Services.AddGateway(builder.Configuration);
 
 // Add API Explorer services (required for Swagger)
 builder.Services.AddEndpointsApiExplorer();
@@ -31,6 +21,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapEndpoints();
+
+app.UseGateway();
 
 app.Run();
 

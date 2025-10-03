@@ -14,24 +14,30 @@ internal class GatewayHandler(
     IRateLimitService rateLimitService,
     ILogger<GatewayHandler> logger) : IGatewayHandler
 {
-    public async ValueTask<Result> RouteRequestAsync(HttpContext context, string serviceId, string downstreamPath)
+    public async ValueTask<Result> RouteRequestAsync(HttpContext context, string downstreamPath)
     {
-        return await ResolveRoute(serviceId)
+        return await ResolveRoute(context)
             .Bind(targetServiceSettings => ApplyRateLimit(context, targetServiceSettings))
             .Bind(targetServiceSettings => SelectTargetInstance(targetServiceSettings, downstreamPath))
             .BindAsync(result => proxyHandler.ProxyRequestAsync(context, result.uri, downstreamPath));
     }
 
-    private Result<TargetServiceSettings> ResolveRoute(string serviceId)
+    private Result<TargetServiceSettings> ResolveRoute(HttpContext context)
     {
+        var targetServiceId = context.GetTargetServiceId();
+        if (string.IsNullOrEmpty(targetServiceId))
+        {
+            logger.LogWarning("No target service ID found in the request context");
+            return Result<TargetServiceSettings>.Failure("No target service ID found in the request context");
+        }
+
         // Find matching route configuration
         var routeService = gatewayOptions.CurrentValue.TargetServices.FirstOrDefault(r =>
-            r.ServiceId.Equals(serviceId, StringComparison.OrdinalIgnoreCase));
-
+            r.ServiceId.Equals(targetServiceId, StringComparison.OrdinalIgnoreCase));
         if (routeService == null)
         {
-            logger.LogWarning("No target service found for service ID '{ServiceId}'", serviceId);
-            return Result<TargetServiceSettings>.Failure($"No target service found for service ID '{serviceId}'");
+            logger.LogWarning("No target service found for service ID '{TargetServiceId}'", targetServiceId);
+            return Result<TargetServiceSettings>.Failure($"No target service found for service ID '{targetServiceId}'");
         }
 
         return Result<TargetServiceSettings>.Success(routeService);
@@ -60,7 +66,7 @@ internal class GatewayHandler(
         }
         else
         {
-            logger.LogError("Failed to select instance for service '{ServiceId}': {Error}", targetServiceSettings.ServiceId, instanceResult.Error.Message);
+            logger.LogError("Failed to select instance for service '{TargetServiceId}': {Error}", targetServiceSettings.ServiceId, instanceResult.Error.Message);
             return Result<(Uri uri, string downstreamPath)>.Failure(instanceResult.Error);
         }
     }

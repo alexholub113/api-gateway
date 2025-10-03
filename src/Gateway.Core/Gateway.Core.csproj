@@ -17,6 +17,7 @@
     <ProjectReference Include="..\Gateway.LoadBalancing\Gateway.LoadBalancing.csproj" />
     <ProjectReference Include="..\Gateway.Proxy\Gateway.Proxy.csproj" />
     <ProjectReference Include="..\Gateway.RateLimiting\Gateway.RateLimiting.csproj" />
+    <ProjectReference Include="..\Gateway.Caching\Gateway.Caching.csproj" />
   </ItemGroup>
 
 </Project>
