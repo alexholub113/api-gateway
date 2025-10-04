@@ -30,6 +30,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gateway.RateLimiting", "src
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gateway.Caching", "src\Gateway.Caching\Gateway.Caching.csproj", "{4339A894-FD38-46C2-8290-BCBEA8D7D7DB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gateway.Metrics", "src\Gateway.Metrics\Gateway.Metrics.csproj", "{0681E6AA-1612-4D3F-8C22-8B4D9842589F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -68,6 +70,10 @@ Global
 		{4339A894-FD38-46C2-8290-BCBEA8D7D7DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4339A894-FD38-46C2-8290-BCBEA8D7D7DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4339A894-FD38-46C2-8290-BCBEA8D7D7DB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0681E6AA-1612-4D3F-8C22-8B4D9842589F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0681E6AA-1612-4D3F-8C22-8B4D9842589F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0681E6AA-1612-4D3F-8C22-8B4D9842589F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0681E6AA-1612-4D3F-8C22-8B4D9842589F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -81,6 +87,7 @@ Global
 		{E1A69088-D48B-4195-94B6-33163BD10F5A} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{D80A3C31-653C-42D0-9DF7-42A6D08986ED} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{4339A894-FD38-46C2-8290-BCBEA8D7D7DB} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{0681E6AA-1612-4D3F-8C22-8B4D9842589F} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D52FB572-CA6D-45F7-86B4-B8C466C53DC7}

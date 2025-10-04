@@ -62,12 +62,9 @@ builder.Services
 .AddGatewayCore()
 .AddRateLimiting()
 .AddLoadBalancing()
-.AddCircuitBreaker()
 .AddAuthentication()
 .AddCaching()
-.AddLogging()
 .AddMetrics()
-.AddHealthChecks()
 .AddProxy();
 
 var app = builder.Build();
@@ -81,6 +78,53 @@ app.Use{ModuleMiddleware}()
 - Global exception handling middleware to catch unhandled exceptions.
 - Use Result<T> pattern for expected errors.
 - Standard HTTP status codes
+
+# Metrics
+
+## Request/Response Metrics
+
+gateway_requests_total (counter) - Total requests by service, method, status code
+gateway_request_duration (histogram) - Request latency distribution
+gateway_errors_total (counter) - Error count by type (4xx, 5xx, timeout, etc.)
+
+## Pipeline Stage Metrics
+
+gateway_route_resolution_duration (histogram) - Time to resolve routes
+gateway_load_balancer_duration (histogram) - Time to select instance
+gateway_proxy_duration (histogram) - Time spent proxying to backend
+gateway_pipeline_stage_duration (histogram) - Duration by pipeline stage
+
+## Rate Limiting Metrics
+
+gateway_rate_limit_requests_total (counter) - Requests by allowed/denied
+gateway_rate_limit_policy_usage (counter) - Usage per rate limit policy
+
+## Caching Metrics
+
+gateway_cache_requests_total (counter) - Cache hits/misses by service/policy
+gateway_cache_hit_ratio (gauge) - Cache hit percentage
+gateway_cache_size_bytes (gauge) - Total cache size in bytes
+
+## Load Balancing Metrics
+
+gateway_load_balancer_requests_total (counter) - Requests by strategy/instance
+gateway_instance_selection_duration (histogram) - Time to select instance
+gateway_instances_available (gauge) - Available instances per service
+gateway_instances_total (gauge) - Total configured instances per service
+
+### Instance Health
+
+gateway_health_checks_total (counter) - Health checks by result/service
+gateway_health_check_duration (histogram) - Health check duration
+gateway_instances_healthy (gauge) - Healthy instances per service
+gateway_instance_failures_total (counter) - Instance failure count
+
+## Proxy Metrics
+
+Backend Communication
+gateway_backend_requests_total (counter) - Backend requests by service/instance
+gateway_backend_duration (histogram) - Backend response time
+gateway_backend_errors_total (counter) - Backend errors by service/type
 
 # Instructions for AI:
 

@@ -1,4 +1,6 @@
+using Gateway.Proxy.Configuration;
 using Gateway.Proxy.Services;
+using Gateway.Proxy.Telemetry;
 using Polly;
 
 namespace Gateway.Proxy.Extensions;
@@ -49,6 +51,8 @@ public static class ProxyExtensions
                 // Configure timeout
                 options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(proxyOptions.TimeoutSeconds);
             });
+
+        services.AddSingleton<ProxyTelemetry>();
 
         return services;
     }

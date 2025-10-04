@@ -1,4 +1,5 @@
 using Gateway.Caching.Extensions;
+using Gateway.Metrics.Extensions;
 using Gateway.RateLimiting.Extensions;
 using Microsoft.AspNetCore.Builder;
 
@@ -17,6 +18,7 @@ public static class ApplicationBuilderExtensions
         // Order is important: Rate limiting should come before caching
         // to prevent serving cached responses to rate-limited clients
         return app
+            .UseGatewayTelemetry()
             .UseRateLimiting()
             .UseCaching();
     }

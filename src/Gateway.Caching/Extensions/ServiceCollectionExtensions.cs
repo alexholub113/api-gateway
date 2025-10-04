@@ -1,5 +1,6 @@
 using Gateway.Caching.Configuration;
 using Gateway.Caching.Services;
+using Gateway.Caching.Telemetry;
 
 namespace Gateway.Caching.Extensions;
 
@@ -28,6 +29,7 @@ public static class ServiceCollectionExtensions
 
         // Register cache service
         services.AddSingleton<ICacheService, MemoryCacheService>();
+        services.AddSingleton<CachingTelemetry>();
 
         return services;
     }

@@ -1,5 +1,6 @@
 using Gateway.RateLimiting.Configuration;
 using Gateway.RateLimiting.Services;
+using Gateway.RateLimiting.Telemetry;
 
 namespace Gateway.RateLimiting.Extensions;
 
@@ -13,6 +14,7 @@ public static class ServiceCollectionExtensions
             .ValidateOnStart();
 
         services.AddSingleton<IRateLimitService, RateLimitService>();
+        services.AddSingleton<RateLimitingTelemetry>();
 
         return services;
     }

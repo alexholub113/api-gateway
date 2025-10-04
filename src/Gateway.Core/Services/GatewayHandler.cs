@@ -29,15 +29,15 @@ internal class GatewayHandler(
         }
 
         // Find matching route configuration
-        var routeService = gatewayOptions.CurrentValue.TargetServices.FirstOrDefault(r =>
+        var targetServiceSettings = gatewayOptions.CurrentValue.TargetServices.FirstOrDefault(r =>
             r.ServiceId.Equals(targetServiceId, StringComparison.OrdinalIgnoreCase));
-        if (routeService == null)
+        if (targetServiceSettings == null)
         {
             logger.LogWarning("No target service found for service ID '{TargetServiceId}'", targetServiceId);
             return Result<TargetServiceSettings>.Failure($"No target service found for service ID '{targetServiceId}'");
         }
 
-        return Result<TargetServiceSettings>.Success(routeService);
+        return Result<TargetServiceSettings>.Success(targetServiceSettings);
     }
 
     private Result<(Uri uri, string downstreamPath)> SelectTargetInstance(TargetServiceSettings targetServiceSettings, string downstreamPath)

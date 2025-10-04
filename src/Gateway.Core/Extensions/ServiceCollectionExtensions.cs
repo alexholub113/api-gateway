@@ -2,6 +2,7 @@ using Gateway.Caching.Extensions;
 using Gateway.Common.Configuration;
 using Gateway.Core.Services;
 using Gateway.LoadBalancing.Extensions;
+using Gateway.Metrics.Extensions;
 using Gateway.Proxy.Extensions;
 using Gateway.RateLimiting.Extensions;
 
@@ -22,8 +23,9 @@ public static class ServiceCollectionExtensions
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
-        // Add rate limiting services
+        // Add gateway services
         services.AddCommonServices()
+            .AddGatewayTelemetry()
             .AddGatewayProxy(configuration)
             .AddLoadBalancing()
             .AddRateLimiting()

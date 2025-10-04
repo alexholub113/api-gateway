@@ -1,4 +1,6 @@
+using Gateway.LoadBalancing.Configuration;
 using Gateway.LoadBalancing.Services;
+using Gateway.LoadBalancing.Telemetry;
 
 namespace Gateway.LoadBalancing.Extensions;
 
@@ -23,6 +25,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IHealthChecker, HealthCheckerService>();
         services.AddHostedService(provider =>
             (HealthCheckerService)provider.GetRequiredService<IHealthChecker>());
+        services.AddSingleton<LoadBalancingTelemetry>();
 
         return services;
     }
