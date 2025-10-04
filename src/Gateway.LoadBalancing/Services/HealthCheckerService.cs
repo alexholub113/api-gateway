@@ -56,7 +56,7 @@ internal class HealthCheckerService(
             foreach (var instance in service.Instances)
             {
                 var key = $"{service.ServiceId}:{instance.Address}";
-                _healthStatuses.TryAdd(key, new InstanceHealthStatus(true, 0, DateTime.UtcNow));
+                _healthStatuses.TryAdd(key, new InstanceHealthStatus(false, 0, DateTime.UtcNow));
                 totalInstances++;
             }
         }
