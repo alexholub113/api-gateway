@@ -126,6 +126,20 @@ gateway_backend_requests_total (counter) - Backend requests by service/instance
 gateway_backend_duration (histogram) - Backend response time
 gateway_backend_errors_total (counter) - Backend errors by service/type
 
+# Frontend demo goals:
+
+## Screenshot-Worthy Pages:
+
+## Components/Panels
+
+Use vit+react+typescript+tailwindcss.
+
+1. Demo request simulator - provides buttons to send request to the target service.
+2. Live request flow - shows wich request hit cache or rate limit or proxy, also shows the duration of the request.
+3. Service Health Monitor - list available services and health status of the instances.
+4. API Gateway Control Center - shows available metrics, could be updated each 5 seconds or after sending request.
+5. Gateway Architecture - visualization of the arcitecture of the gateway for demo purpose.
+
 # Instructions for AI:
 
 - if user uses 'Ask' mode instead of 'Agent', then avoid providing detail implementation, focus on describing of options, approaches, solutions instead.

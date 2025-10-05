@@ -14,12 +14,12 @@ internal class GatewayHandler(
 {
     public async ValueTask<Result> RouteRequestAsync(HttpContext context, string downstreamPath)
     {
-        return await ResolveRoute(context)
+        return await ResolveTargetService(context)
             .Bind(targetServiceSettings => SelectTargetInstance(targetServiceSettings, downstreamPath))
             .BindAsync(result => proxyHandler.ProxyRequestAsync(context, result.uri, downstreamPath));
     }
 
-    private Result<TargetServiceSettings> ResolveRoute(HttpContext context)
+    private Result<TargetServiceSettings> ResolveTargetService(HttpContext context)
     {
         var targetServiceId = context.GetGatewayTargetServiceId();
         if (string.IsNullOrEmpty(targetServiceId))

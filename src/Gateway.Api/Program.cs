@@ -5,6 +5,19 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddGateway(builder.Configuration);
 
+// Add CORS
+var frontendUrl = builder.Configuration.GetValue<string>("Cors:FrontendUrl") ?? "http://localhost:5173";
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins(frontendUrl)
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials();
+    });
+});
+
 // Add API Explorer services (required for Swagger)
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -13,6 +26,9 @@ builder.Services.AddEndpoints(typeof(Program).Assembly);
 var app = builder.Build();
 
 app.UseHttpsRedirection();
+
+// Enable CORS
+app.UseCors("AllowFrontend");
 
 if (app.Environment.IsDevelopment())
 {

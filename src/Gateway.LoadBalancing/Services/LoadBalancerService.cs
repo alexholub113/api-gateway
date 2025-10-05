@@ -1,5 +1,6 @@
 using Gateway.Common.Configuration;
 using Gateway.Common.Models;
+using Gateway.LoadBalancing.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Gateway.LoadBalancing.Services;
@@ -29,7 +30,7 @@ internal class LoadBalancerService(
 
         // Get only healthy instances
         var healthyInstances = service.Instances
-            .Where(instance => healthChecker.IsHealthy(serviceId, instance.Address))
+            .Where(instance => healthChecker.IsHealthy(new ServiceInstanceId(serviceId, instance.Address)))
             .ToArray();
         if (healthyInstances.Length == 0)
         {

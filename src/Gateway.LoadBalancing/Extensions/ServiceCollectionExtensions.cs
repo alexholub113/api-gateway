@@ -22,9 +22,15 @@ public static class ServiceCollectionExtensions
 
         // Register services
         services.AddSingleton<ILoadBalancer, LoadBalancerService>();
-        services.AddSingleton<IHealthChecker, HealthCheckerService>();
-        services.AddHostedService(provider =>
-            (HealthCheckerService)provider.GetRequiredService<IHealthChecker>());
+
+        // Register HealthCheckerService as singleton for both interfaces
+        services.AddSingleton<HealthCheckerService>();
+        services.AddSingleton<IHealthChecker>(provider => provider.GetRequiredService<HealthCheckerService>());
+        services.AddSingleton<IServiceStatusProvider>(provider => provider.GetRequiredService<HealthCheckerService>());
+
+        // Register as hosted service
+        services.AddHostedService(provider => provider.GetRequiredService<HealthCheckerService>());
+
         services.AddSingleton<LoadBalancingTelemetry>();
 
         return services;

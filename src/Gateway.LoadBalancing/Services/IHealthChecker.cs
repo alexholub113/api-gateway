@@ -1,12 +1,14 @@
-﻿namespace Gateway.LoadBalancing.Services;
+﻿using Gateway.LoadBalancing.Models;
+
+namespace Gateway.LoadBalancing.Services;
 
 /// <summary>
 /// Service responsible for monitoring health of service instances
 /// </summary>
-internal interface IHealthChecker
+public interface IHealthChecker
 {
     /// <summary>
     /// Gets the current health status of a service instance
     /// </summary>
-    bool IsHealthy(string serviceName, string instanceUrl);
+    bool IsHealthy(ServiceInstanceId serviceInstanceId);
 }

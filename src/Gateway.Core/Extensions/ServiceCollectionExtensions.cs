@@ -1,5 +1,4 @@
 using Gateway.Caching.Extensions;
-using Gateway.Common.Configuration;
 using Gateway.Core.Services;
 using Gateway.LoadBalancing.Extensions;
 using Gateway.Metrics.Extensions;
@@ -18,11 +17,6 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddGateway(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddOptions<GatewayOptions>()
-            .BindConfiguration(GatewayOptions.SectionName)
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
-
         // Add gateway services
         services.AddCommonServices()
             .AddGatewayTelemetry()

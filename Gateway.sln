@@ -18,9 +18,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gateway.Core", "src\Gateway
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gateway.Proxy", "src\Gateway.Proxy\Gateway.Proxy.csproj", "{1DB8027C-67B1-3135-9928-20AB99E13AD2}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{412F1CAA-CB63-487A-BADA-DFDFD54FB151}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "demo", "demo", "{412F1CAA-CB63-487A-BADA-DFDFD54FB151}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TargetService.Api", "samples\TargetService.Api\TargetService.Api.csproj", "{5DC7B4B7-0CE3-4CDF-AF88-53798A57FB24}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TargetService.Api", "demo\TargetService.Api\TargetService.Api.csproj", "{5DC7B4B7-0CE3-4CDF-AF88-53798A57FB24}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gateway.LoadBalancing", "src\Gateway.LoadBalancing\Gateway.LoadBalancing.csproj", "{75D04921-5602-4814-A384-41536BD7E15D}"
 EndProject
