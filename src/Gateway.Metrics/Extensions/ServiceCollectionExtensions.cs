@@ -1,3 +1,4 @@
+using Gateway.Metrics.Services;
 using Gateway.Metrics.Telemetry;
 using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Metrics;
@@ -15,8 +16,8 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddGatewayTelemetry(this IServiceCollection services)
     {
-        // Register pipeline telemetry service (Gateway.Metrics owns this)
-        services.AddSingleton<PipelineTelemetry>();
+        // Register core telemetry service
+        services.AddSingleton<CoreTelemetry>();
 
         services.AddOpenTelemetry()
             .WithMetrics(metrics =>
@@ -24,11 +25,11 @@ public static class ServiceCollectionExtensions
                 metrics
                     .AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
+                    .AddMeter("Gateway.Core")            // Core gateway metrics (ALL requests)
                     .AddMeter("Gateway.RateLimiting")    // Rate limiting metrics
                     .AddMeter("Gateway.Caching")         // Caching metrics
                     .AddMeter("Gateway.LoadBalancing")   // Load balancing metrics  
                     .AddMeter("Gateway.Proxy")           // Proxy metrics
-                    .AddMeter("Gateway.Metrics")         // Pipeline metrics
                     .AddConsoleExporter()
                     .AddPrometheusExporter(); // Expose metrics at /metrics endpoint
             })
@@ -39,6 +40,7 @@ public static class ServiceCollectionExtensions
                     .AddHttpClientInstrumentation()
                     .AddConsoleExporter();
             });
+        services.AddSingleton<IGatewayMetricsProvider, MetricsAggregatorService>();
 
         return services;
     }

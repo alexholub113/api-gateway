@@ -1,9 +1,16 @@
 using Gateway.Core.Extensions;
 using MinimalEndpoints.Extensions;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddGateway(builder.Configuration);
+
+// Configure JSON serialization to handle special floating-point values
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals;
+});
 
 // Add CORS
 var frontendUrl = builder.Configuration.GetValue<string>("Cors:FrontendUrl") ?? "http://localhost:5173";
@@ -41,5 +48,3 @@ app.MapEndpoints();
 app.UseGateway();
 
 app.Run();
-
-

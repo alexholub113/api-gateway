@@ -1,3 +1,4 @@
+using Gateway.Metrics.Middleware;
 using Microsoft.AspNetCore.Builder;
 
 namespace Gateway.Metrics.Extensions;
@@ -20,5 +21,13 @@ public static class ApplicationBuilderExtensions
         });
 
         return app;
+    }
+
+    /// <summary>
+    /// Adds core telemetry middleware to record ALL gateway requests
+    /// </summary>
+    public static IApplicationBuilder UseCoreMetrics(this IApplicationBuilder app)
+    {
+        return app.UseMiddleware<CoreTelemetryMiddleware>();
     }
 }

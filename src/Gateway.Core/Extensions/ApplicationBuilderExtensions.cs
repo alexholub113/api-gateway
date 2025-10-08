@@ -15,9 +15,8 @@ public static class ApplicationBuilderExtensions
     /// </summary>
     public static IApplicationBuilder UseGateway(this IApplicationBuilder app)
     {
-        // Order is important: Rate limiting should come before caching
-        // to prevent serving cached responses to rate-limited clients
         return app
+            .UseCoreMetrics()
             .UseGatewayTelemetry()
             .UseRateLimiting()
             .UseCaching();
