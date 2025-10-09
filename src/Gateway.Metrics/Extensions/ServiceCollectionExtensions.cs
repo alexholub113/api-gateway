@@ -26,6 +26,7 @@ public static class ServiceCollectionExtensions
                     .AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
                     .AddMeter("Gateway.Core")            // Core gateway metrics (ALL requests)
+                    .AddMeter("Gateway.Auth")            // Authentication metrics
                     .AddMeter("Gateway.RateLimiting")    // Rate limiting metrics
                     .AddMeter("Gateway.Caching")         // Caching metrics
                     .AddMeter("Gateway.LoadBalancing")   // Load balancing metrics  

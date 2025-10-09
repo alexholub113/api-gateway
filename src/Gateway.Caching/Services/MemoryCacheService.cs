@@ -1,5 +1,6 @@
 using Gateway.Caching.Configuration;
 using Gateway.Caching.Models;
+using Gateway.Common.Configuration;
 using System.Security.Claims;
 
 namespace Gateway.Caching.Services;
@@ -15,9 +16,9 @@ internal class MemoryCacheService(
     private readonly CachingOptions _options = options.Value;
     private readonly ConcurrentDictionary<string, DateTime> _cacheKeys = new();
 
-    public async ValueTask<Result<bool>> TryGetAndWriteAsync(HttpContext context, string serviceId, string policyName, CancellationToken cancellationToken = default)
+    public async ValueTask<Result<bool>> TryGetAndWriteAsync(HttpContext context, string serviceId, CachePolicy policy, CancellationToken cancellationToken = default)
     {
-        var cacheResult = await TryGetAsync(context, serviceId, policyName);
+        var cacheResult = await TryGetAsync(context, serviceId, policy);
 
         if (!cacheResult.IsSuccess)
         {
@@ -50,16 +51,10 @@ internal class MemoryCacheService(
         return Result<bool>.Success(false);
     }
 
-    public ValueTask<Result> SetAsync(HttpContext context, string serviceId, string policyName, CachedResponse response, CancellationToken cancellationToken = default)
+    public ValueTask<Result> SetAsync(HttpContext context, string serviceId, CachePolicy policy, CachedResponse response, CancellationToken cancellationToken = default)
     {
         try
         {
-            if (!_options.Policies.TryGetValue(policyName, out var policy))
-            {
-                logger.LogWarning("Cache policy '{PolicyName}' not found", policyName);
-                return ValueTask.FromResult(Result.Failure($"Cache policy '{policyName}' not found"));
-            }
-
             var cacheKey = BuildCacheKey(context, serviceId, policy);
             var keyString = cacheKey.ToKeyString();
             var expiresAt = DateTime.UtcNow.Add(policy.Duration);
@@ -83,11 +78,11 @@ internal class MemoryCacheService(
         }
     }
 
-    public ValueTask<Result<bool>> IsCacheableAsync(HttpContext context, string? policyName, CancellationToken cancellationToken = default)
+    public ValueTask<Result<bool>> IsCacheableAsync(HttpContext context, CachePolicy? policy, CancellationToken cancellationToken = default)
     {
         try
         {
-            if (string.IsNullOrEmpty(policyName))
+            if (policy == null)
             {
                 return ValueTask.FromResult(Result<bool>.Success(false));
             }
@@ -97,18 +92,12 @@ internal class MemoryCacheService(
                 return ValueTask.FromResult(Result<bool>.Success(false));
             }
 
-            if (!_options.Policies.TryGetValue(policyName, out var policy))
-            {
-                logger.LogWarning("Cache policy '{PolicyName}' not found", policyName);
-                return ValueTask.FromResult(Result<bool>.Success(false));
-            }
-
             // Check if the HTTP method is cacheable
             var method = context.Request.Method;
             var isCacheable = policy.Methods?.Contains(method, StringComparer.OrdinalIgnoreCase) ?? false;
 
-            logger.LogDebug("Request {Method} is {Status} for caching with policy '{PolicyName}'",
-                method, isCacheable ? "eligible" : "not eligible", policyName);
+            logger.LogDebug("Request {Method} is {Status} for caching",
+                method, isCacheable ? "eligible" : "not eligible");
 
             return ValueTask.FromResult(Result<bool>.Success(isCacheable));
         }
@@ -151,14 +140,8 @@ internal class MemoryCacheService(
         }
     }
 
-    private ValueTask<Result<CacheResult<CachedResponse>>> TryGetAsync(HttpContext context, string serviceId, string policyName)
+    private ValueTask<Result<CacheResult<CachedResponse>>> TryGetAsync(HttpContext context, string serviceId, CachePolicy policy)
     {
-        if (!_options.Policies.TryGetValue(policyName, out var policy))
-        {
-            logger.LogWarning("Cache policy '{PolicyName}' not found", policyName);
-            return ValueTask.FromResult(Result<CacheResult<CachedResponse>>.Failure($"Cache policy '{policyName}' not found"));
-        }
-
         var cacheKey = BuildCacheKey(context, serviceId, policy);
         var keyString = cacheKey.ToKeyString();
 
@@ -187,7 +170,7 @@ internal class MemoryCacheService(
         };
 
         // Add vary-by headers
-        if (policy.VaryByHeaders?.Length > 0)
+        if (policy.VaryByHeaders?.Count > 0)
         {
             var headers = new Dictionary<string, string>();
             foreach (var headerName in policy.VaryByHeaders)

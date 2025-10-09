@@ -1,3 +1,4 @@
+using Gateway.Auth.Extensions;
 using Gateway.Caching.Extensions;
 using Gateway.Metrics.Extensions;
 using Gateway.RateLimiting.Extensions;
@@ -19,6 +20,7 @@ public static class ApplicationBuilderExtensions
             .UseCoreMetrics()
             .UseGatewayTelemetry()
             .UseRateLimiting()
+            .UseGatewayAuth()
             .UseCaching();
     }
 }

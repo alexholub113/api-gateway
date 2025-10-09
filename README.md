@@ -4,12 +4,12 @@ A modern, production-ready API Gateway built with ASP.NET Core 9.0, inspired by 
 
 ## 🎯 Key Features
 
-- **Smart Routing** - Route requests to backend services with flexible path-based configuration
-- **Rate Limiting** - Token bucket algorithm with per-service policies
+- **Smart Routing** - Route requests to backend services with flexible configuration
+- **JWT Authentication** - Bearer token validation with issuer/audience verification
+- **Rate Limiting** - Configurable algorithms (Sliding Window, Token Bucket, Fixed Window)
 - **Load Balancing** - Round-robin, least-connections, and weighted strategies
-- **Response Caching** - Memory-based caching with TTL policies
+- **Response Caching** - Memory-based caching with flexible TTL policies
 - **Circuit Breaker** - Fault tolerance with automatic failure detection
-- **AuthZN Integration** - Distributed authorization service for policy-based access control
 - **Real-Time Metrics** - OpenTelemetry + Prometheus for observability
 - **Health Checks** - Monitor backend service availability
 
@@ -18,17 +18,18 @@ A modern, production-ready API Gateway built with ASP.NET Core 9.0, inspired by 
 The gateway follows a modular design where each feature is a separate project:
 
 ```
-Gateway.Api         → Web layer (Minimal APIs)
-Gateway.Core        → Core orchestration logic
-Gateway.RateLimiting → Token bucket rate limiting
+Gateway.Api           → Web layer (Minimal APIs)
+Gateway.Core          → Core orchestration logic
+Gateway.Auth          → JWT Bearer authentication
+Gateway.RateLimiting  → Flexible rate limiting algorithms
 Gateway.LoadBalancing → Multiple balancing strategies
-Gateway.Caching     → Response caching layer
-Gateway.Proxy       → HTTP forwarding engine
-Gateway.Metrics     → OpenTelemetry integration
-Gateway.Common      → Shared utilities
+Gateway.Caching       → Response caching layer
+Gateway.Proxy         → HTTP forwarding engine
+Gateway.Metrics       → OpenTelemetry integration
+Gateway.Common        → Shared utilities & models
 ```
 
-Each module records its own telemetry and can be configured independently via `appsettings.json`.
+Each module records its own telemetry and policies are configured inline per service in `appsettings.json`.
 
 ## 🚀 Quick Start
 
@@ -88,30 +89,62 @@ Visual representation of request flow through the gateway pipeline:
 
 ## ⚙️ Configuration
 
-Configure routes and policies in `appsettings.json`:
+Configure services and policies inline in `appsettings.json`:
 
 ```json
 {
   "Gateway": {
-    "Routes": [
+    "TargetServices": [
       {
-        "Path": "/api/users",
-        "Origin": "http://localhost:5001",
-        "RateLimitPolicy": "default",
-        "CachePolicy": "standard"
+        "ServiceId": "user-api",
+        "LoadBalancingStrategy": "RoundRobin",
+        "Instances": [
+          { "Address": "http://localhost:5001", "Weight": 1 }
+        ],
+        "RateLimitPolicy": {
+          "RequestsPerWindow": 100,
+          "WindowSize": "00:01:00",
+          "Algorithm": "SlidingWindow"
+        },
+        "CachePolicy": {
+          "Duration": "00:05:00",
+          "Methods": ["GET"],
+          "VaryByQuery": true
+        },
+        "AuthPolicy": {
+          "ValidIssuers": ["https://your-issuer.com"],
+          "ValidAudiences": ["your-api"]
+        }
       }
     ]
-  },
-  "RateLimiting": {
-    "Policies": {
-      "default": {
-        "RequestsPerMinute": 100,
-        "BurstSize": 20
-      }
-    }
   }
 }
 ```
+
+**Flexible Policy Configuration:**
+- Policies are defined inline per service (no shared policy dictionaries)
+- Each service can have unique rate limiting, caching, and auth policies
+- Set policies to `null` to disable features per service
+
+## 🔐 Authentication
+
+The gateway supports JWT Bearer token authentication:
+
+```bash
+# Request to protected service
+curl -H "Authorization: Bearer <jwt-token>" \
+     -H "X-Gateway-TargetServiceId: protected-api" \
+     http://localhost:5000/api/resource
+```
+
+**Features:**
+- Per-service JWT validation policies
+- Issuer and audience validation
+- Automatic token validation via Microsoft.IdentityModel
+- Authenticated user context available to downstream services
+- Full metrics for authentication attempts and failures
+
+See `docs/GATEWAY_AUTH.md` for detailed configuration.
 
 ## 📊 Observability
 
@@ -123,6 +156,8 @@ Configure routes and policies in `appsettings.json`:
 
 - `gateway_requests_total` - Total request count by service/status
 - `gateway_request_duration` - Request latency histogram
+- `gateway_auth_requests_total` - Authentication attempts by result
+- `gateway_auth_errors_total` - Authentication failures
 - `gateway_cache_hits_total` / `gateway_cache_misses_total` - Cache performance
 - `gateway_backend_errors_total` - Backend failure tracking
 - `gateway_rate_limit_requests_total` - Rate limiting statistics
@@ -133,6 +168,7 @@ Configure routes and policies in `appsettings.json`:
 - ASP.NET Core 9.0 with Minimal APIs
 - OpenTelemetry for metrics & tracing
 - Prometheus exporter
+- Microsoft.IdentityModel for JWT validation
 - Memory-based caching
 
 **Frontend:**
@@ -145,18 +181,19 @@ Configure routes and policies in `appsettings.json`:
 
 - **Modular Architecture** - Each feature is isolated for maintainability and testability
 - **OpenTelemetry First** - Built-in observability without vendor lock-in
-- **Configuration Over Code** - Routes and policies configured via JSON
+- **Inline Policy Configuration** - Policies defined per service for maximum flexibility
 - **Primary Constructors** - Modern C# 12 features throughout
 - **Result Pattern** - Explicit error handling without exceptions for flow control
 - **Singleton Services** - Most services are stateless singletons for performance
+- **Internal Encapsulation** - Module implementations are internal, only extensions are public
 
 ## 🔄 Request Flow
 
 ```
-Client → Gateway.Api → CoreTelemetry → RateLimiting → Caching → LoadBalancer → Proxy → Backend
+Client → Gateway.Api → CoreMetrics → Telemetry → RateLimiting → Auth → Caching → LoadBalancer → Proxy → Backend
 ```
 
-Each middleware can short-circuit the pipeline (e.g., return cached response, reject rate-limited request).
+Each middleware can short-circuit the pipeline (e.g., return 401 for auth failure, return cached response, reject rate-limited request).
 
 ## 📝 License
 

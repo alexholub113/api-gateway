@@ -1,4 +1,5 @@
 using Gateway.Caching.Models;
+using Gateway.Common.Configuration;
 
 namespace Gateway.Caching;
 
@@ -12,13 +13,13 @@ public interface ICacheService
     /// </summary>
     /// <param name="context">HTTP context</param>
     /// <param name="serviceId">Target service ID</param>
-    /// <param name="policyName">Cache policy name</param>
+    /// <param name="policy">Cache policy</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Result indicating if cache was hit and response was written</returns>
     ValueTask<Result<bool>> TryGetAndWriteAsync(
         HttpContext context,
         string serviceId,
-        string policyName,
+        CachePolicy policy,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -26,14 +27,14 @@ public interface ICacheService
     /// </summary>
     /// <param name="context">HTTP context</param>
     /// <param name="serviceId">Target service ID</param>
-    /// <param name="policyName">Cache policy name</param>
+    /// <param name="policy">Cache policy</param>
     /// <param name="response">Response to cache</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Result of cache operation</returns>
     ValueTask<Result> SetAsync(
         HttpContext context,
         string serviceId,
-        string policyName,
+        CachePolicy policy,
         CachedResponse response,
         CancellationToken cancellationToken = default);
 
@@ -41,12 +42,12 @@ public interface ICacheService
     /// Determines if the request is cacheable based on the policy
     /// </summary>
     /// <param name="context">HTTP context</param>
-    /// <param name="policyName">Cache policy name</param>
+    /// <param name="policy">Cache policy</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>True if request is cacheable</returns>
     ValueTask<Result<bool>> IsCacheableAsync(
         HttpContext context,
-        string? policyName,
+        CachePolicy? policy,
         CancellationToken cancellationToken = default);
 
     /// <summary>

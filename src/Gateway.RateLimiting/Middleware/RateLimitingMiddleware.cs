@@ -27,7 +27,7 @@ public class RateLimitingMiddleware(RequestDelegate next, IRateLimitService rate
 
             // Resolve the target service settings
             var targetService = ResolveTargetService(serviceId);
-            if (targetService == null || string.IsNullOrEmpty(targetService.RateLimitPolicy))
+            if (targetService?.RateLimitPolicy == null)
             {
                 await next(context);
                 return;
@@ -44,7 +44,7 @@ public class RateLimitingMiddleware(RequestDelegate next, IRateLimitService rate
                 context.Response.Headers["X-RateLimit-Retry-After"] = ((int)rateLimitResult.Value.RetryAfter.TotalSeconds).ToString();
 
                 // Record rate limit violation
-                telemetry.RecordRateLimitViolation(serviceId, targetService.RateLimitPolicy, GetClientId(context));
+                telemetry.RecordRateLimitViolation(serviceId, targetService.RateLimitPolicy.Algorithm.ToString(), GetClientId(context));
 
                 await context.Response.WriteAsync("Rate limit exceeded");
                 return;
@@ -53,7 +53,7 @@ public class RateLimitingMiddleware(RequestDelegate next, IRateLimitService rate
             // Record successful rate limit check
             if (rateLimitResult.IsSuccess)
             {
-                telemetry.RecordRateLimitDecision(serviceId, targetService.RateLimitPolicy, rateLimitResult.Value.IsAllowed, GetClientId(context));
+                telemetry.RecordRateLimitDecision(serviceId, targetService.RateLimitPolicy.Algorithm.ToString(), rateLimitResult.Value.IsAllowed, GetClientId(context));
             }
 
             // Rate limit passed - continue to next middleware

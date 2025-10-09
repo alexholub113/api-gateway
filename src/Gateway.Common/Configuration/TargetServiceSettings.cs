@@ -13,6 +13,7 @@ public class TargetServiceSettings
     [Required]
     public ServiceInstance[] Instances { get; set; } = [];
 
-    public string? RateLimitPolicy { get; set; }
-    public string? CachePolicy { get; set; }
+    public RateLimitPolicy? RateLimitPolicy { get; set; }
+    public CachePolicy? CachePolicy { get; set; }
+    public AuthPolicy? AuthPolicy { get; set; }
 }

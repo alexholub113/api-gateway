@@ -1,3 +1,4 @@
+using Gateway.Auth.Extensions;
 using Gateway.Caching.Extensions;
 using Gateway.Core.Services;
 using Gateway.LoadBalancing.Extensions;
@@ -20,6 +21,7 @@ public static class ServiceCollectionExtensions
         // Add gateway services
         services.AddCommonServices()
             .AddGatewayTelemetry()
+            .AddGatewayAuth()
             .AddGatewayProxy(configuration)
             .AddLoadBalancing()
             .AddRateLimiting()

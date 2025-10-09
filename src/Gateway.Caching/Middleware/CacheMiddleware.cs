@@ -21,7 +21,7 @@ public class CacheMiddleware(RequestDelegate next, ICacheService cacheService, I
 
         // Resolve the target service settings
         var targetService = ResolveTargetService(serviceId);
-        if (targetService == null || string.IsNullOrEmpty(targetService.CachePolicy))
+        if (targetService?.CachePolicy == null)
         {
             await next(context);
             return;
@@ -74,7 +74,7 @@ public class CacheMiddleware(RequestDelegate next, ICacheService cacheService, I
             r.ServiceId.Equals(serviceId, StringComparison.OrdinalIgnoreCase));
     }
 
-    private async Task CacheResponse(HttpContext context, string serviceId, string cachePolicy, MemoryStream responseBodyStream)
+    private async Task CacheResponse(HttpContext context, string serviceId, CachePolicy cachePolicy, MemoryStream responseBodyStream)
     {
         try
         {

@@ -1,22 +1,16 @@
-using Gateway.RateLimiting.Configuration;
+using Gateway.Common.Configuration;
 using Gateway.RateLimiting.Models;
 
 namespace Gateway.RateLimiting.Services;
 
-internal class RateLimitService(IOptionsMonitor<RateLimitingOptions> options, ILogger<RateLimitService> logger) : IRateLimitService
+internal class RateLimitService(ILogger<RateLimitService> logger) : IRateLimitService
 {
     private readonly ConcurrentDictionary<string, ClientRateLimitState> _clientStates = new();
     private readonly SemaphoreSlim _cleanupSemaphore = new(1, 1);
     private DateTime _lastCleanup = DateTime.UtcNow;
 
-    public Result<RateLimitResult> ApplyRateLimit(HttpContext context, string policyName)
+    public Result<RateLimitResult> ApplyRateLimit(HttpContext context, RateLimitPolicy policy)
     {
-        if (!options.CurrentValue.Policies.TryGetValue(policyName, out var policy))
-        {
-            logger.LogWarning("Rate limit policy '{policyName}' not found", policyName);
-            return Result<RateLimitResult>.Failure(Error.NotFound($"Rate limit policy '{policyName}' not found"));
-        }
-
         var clientKey = ExtractClientKey(context);
         var rateLimitResult = IsRequestAllowedAsync(clientKey, policy);
 

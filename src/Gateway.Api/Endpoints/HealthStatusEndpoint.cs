@@ -54,8 +54,12 @@ public class HealthStatusEndpoint : IEndpoint
                     LoadBalancingStrategy: service.LoadBalancingStrategy.ToString(),
                     TotalInstances: service.Instances.Length,
                     HealthyInstances: healthyCount,
-                    RateLimitPolicy: service.RateLimitPolicy,
-                    CachePolicy: service.CachePolicy,
+                    RateLimitPolicy: service.RateLimitPolicy != null
+                        ? $"{service.RateLimitPolicy.RequestsPerWindow} req/{service.RateLimitPolicy.WindowSize.TotalSeconds}s ({service.RateLimitPolicy.Algorithm})"
+                        : null,
+                    CachePolicy: service.CachePolicy != null
+                        ? $"{service.CachePolicy.Duration.TotalMinutes}min cache"
+                        : null,
                     Instances: instances.ToArray()
                 ));
             }
