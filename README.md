@@ -5,7 +5,7 @@ A modern, production-ready API Gateway built with ASP.NET Core 9.0, inspired by 
 ## 🎯 Key Features
 
 - **Smart Routing** - Route requests to backend services with flexible configuration
-- **JWT Authentication** - Bearer token validation with issuer/audience verification
+- **Authentication** - Bearer token validation with issuer/audience verification
 - **Rate Limiting** - Configurable algorithms (Sliding Window, Token Bucket, Fixed Window)
 - **Load Balancing** - Round-robin, least-connections, and weighted strategies
 - **Response Caching** - Memory-based caching with flexible TTL policies
@@ -44,7 +44,7 @@ cd src/Gateway.Api
 dotnet run
 ```
 
-Gateway starts on `http://localhost:5000`
+Gateway starts on `https://localhost:7214`
 
 ### Run the Demo Frontend
 
